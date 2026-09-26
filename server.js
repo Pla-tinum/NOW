@@ -1,3 +1,28 @@
-const http=require('http'),fs=require('fs'),path=require('path');
-const port=process.env.PORT||3000, root=path.join(__dirname,'public');
-http.createServer((req,res)=>{let p=req.url.split('?')[0]; if(p==='/'||!path.extname(p)) p='/index.html'; const f=path.join(root,p); if(!f.startsWith(root)){res.writeHead(403);return res.end('Forbidden')} fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);return res.end('Not found')} const ext=path.extname(f); const type={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript'}[ext]||'application/octet-stream';res.writeHead(200,{'Content-Type':type});res.end(d)})}).listen(port,()=>console.log('NOW running on '+port));
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+
+const PORT = process.env.PORT || 3000;
+
+const server = http.createServer((req, res) => {
+  const filePath = path.join(__dirname, "index.html");
+
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("NOW failed to load");
+      return;
+    }
+
+    res.writeHead(200, {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache"
+    });
+
+    res.end(data);
+  });
+});
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`NOW is running on port ${PORT}`);
+});
