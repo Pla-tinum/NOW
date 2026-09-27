@@ -17,6 +17,7 @@ button{cursor:pointer}
 .logo{font-size:34px;font-weight:900;letter-spacing:-2px}
 .sub{color:var(--muted);font-size:16px;margin-top:2px}
 .avatar{width:46px;height:46px;border-radius:50%;background:var(--purple);display:grid;place-items:center;font-weight:800}
+.langwrap{display:flex;align-items:center;gap:8px}.langselect{max-width:150px;background:var(--card);color:white;border:1px solid var(--line);border-radius:16px;padding:10px 8px;font-size:13px}
 h1{font-size:42px;line-height:1.03;letter-spacing:-2px;margin:0 0 26px}
 .search{width:100%;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:20px;color:white;font-size:17px;outline:none}
 .search:focus{border-color:var(--purple)}
@@ -79,9 +80,9 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 <main class="app">
 
 <section id="home" class="page active">
-<div class="top"><div><div class="logo">NOW</div><div class="sub">Global Real-Life Network</div></div><div class="avatar">N</div></div>
-<h1>What do you need<br>right now?</h1>
-<input class="search" id="need" placeholder="Tell NOW what you need…" onkeydown="if(event.key==='Enter')matchNeed()">
+<div class="top"><div><div class="logo">NOW</div><div class="sub" data-i18n="tagline">Global Real-Life Network</div></div><div class="langwrap"><select id="languageSelect" class="langselect" aria-label="Language"></select><div class="avatar">N</div></div></div>
+<h1 data-i18n-html="hero">What do you need<br>right now?</h1>
+<input class="search" id="need" data-i18n-placeholder="search" placeholder="Tell NOW what you need…" onkeydown="if(event.key==='Enter')matchNeed()">
 
 <div class="grid">
 <button class="action" onclick="openCreate('I want to make money')"><div class="icon">💰</div><b>Make money</b></button>
@@ -98,7 +99,7 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 </section>
 
 <section id="explore" class="page">
-<div class="head">Explore nearby</div>
+<div class="head" data-i18n="explore">Explore nearby</div>
 <div class="filters" role="group" aria-label="Opportunity categories">
 <button class="filter active" data-category="All" aria-pressed="true">ALL</button><button class="filter" data-category="Earn" aria-pressed="false">Earn</button><button class="filter" data-category="Help" aria-pressed="false">Help</button><button class="filter" data-category="People" aria-pressed="false">People</button><button class="filter" data-category="Rides" aria-pressed="false">Rides</button><button class="filter" data-category="Marketplace" aria-pressed="false">Marketplace</button>
 </div>
@@ -111,7 +112,7 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 </section>
 
 <section id="create" class="page">
-<div class="head">Create</div>
+<div class="head" data-i18n="create">Create</div>
 <p class="sub">Tell NOW naturally. AI will understand it and structure the action.</p>
 <textarea id="createText" placeholder="Example: I need someone with a van to move a sofa tonight for 500 NOK"></textarea>
 <button class="bigbtn" onclick="publish()">Find matches now</button>
@@ -120,13 +121,13 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 </section>
 
 <section id="chat" class="page">
-<div class="head">Chat</div>
+<div class="head" data-i18n="chat">Chat</div>
 <div class="card chat"><div class="face">👨</div><div class="chattext"><b>Martin · Sofa move</b><div class="meta" style="margin:4px 0">Can be there at 18:00 👍</div></div><div class="badge">1</div></div>
 <div class="card chat"><div class="face">🚙</div><div class="chattext"><b>Anna · Ride</b><div class="meta" style="margin:4px 0">Bergen → Voss tomorrow</div></div></div>
 </section>
 
 <section id="you" class="page">
-<div class="head">You</div>
+<div class="head" data-i18n="you">You</div>
 <div class="profile">
 <div class="avatar">N</div>
 <h2 style="margin-top:15px">NOW User</h2>
@@ -162,6 +163,24 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 <script src="/vendor/leaflet.js"></script>
 <script src="/explore.js"></script>
 <script>
+
+const LANGUAGES=[
+['en','English'],['no','Norsk'],['ru','Русский'],['uk','Українська'],['es','Español'],['fr','Français'],['de','Deutsch'],['it','Italiano'],['pt','Português'],['nl','Nederlands'],['pl','Polski'],['cs','Čeština'],['sk','Slovenčina'],['sv','Svenska'],['da','Dansk'],['fi','Suomi'],['is','Íslenska'],['et','Eesti'],['lv','Latviešu'],['lt','Lietuvių'],['ro','Română'],['hu','Magyar'],['el','Ελληνικά'],['bg','Български'],['sr','Srpski'],['hr','Hrvatski'],['sl','Slovenščina'],['tr','Türkçe'],['ar','العربية'],['he','עברית'],['fa','فارسی'],['hi','हिन्दी'],['bn','বাংলা'],['ur','اردو'],['pa','ਪੰਜਾਬੀ'],['zh','中文'],['ja','日本語'],['ko','한국어'],['vi','Tiếng Việt'],['th','ไทย'],['id','Bahasa Indonesia'],['ms','Bahasa Melayu'],['tl','Filipino'],['sw','Kiswahili'],['af','Afrikaans'],['sq','Shqip'],['mk','Македонски'],['ka','ქართული'],['hy','Հայերեն'],['az','Azərbaycanca']
+];
+const I18N={
+en:{tagline:'Global Real-Life Network',hero:'What do you need<br>right now?',search:'Tell NOW what you need…',explore:'Explore nearby',create:'Create',chat:'Chat',you:'You'},
+no:{tagline:'Globalt nettverk for virkeligheten',hero:'Hva trenger du<br>akkurat nå?',search:'Fortell NOW hva du trenger…',explore:'Utforsk i nærheten',create:'Opprett',chat:'Chat',you:'Du'},
+ru:{tagline:'Глобальная сеть реальной жизни',hero:'Что тебе нужно<br>прямо сейчас?',search:'Расскажи NOW, что тебе нужно…',explore:'Рядом с вами',create:'Создать',chat:'Чат',you:'Профиль'},
+uk:{tagline:'Глобальна мережа реального життя',hero:'Що тобі потрібно<br>прямо зараз?',search:'Розкажи NOW, що тобі потрібно…',explore:'Поруч із вами',create:'Створити',chat:'Чат',you:'Профіль'},
+es:{tagline:'Red global de vida real',hero:'¿Qué necesitas<br>ahora mismo?',search:'Dile a NOW qué necesitas…',explore:'Explorar cerca',create:'Crear',chat:'Chat',you:'Tú'},
+fr:{tagline:'Réseau mondial de la vie réelle',hero:'De quoi avez-vous besoin<br>maintenant ?',search:'Dites à NOW ce dont vous avez besoin…',explore:'Explorer à proximité',create:'Créer',chat:'Chat',you:'Vous'},
+de:{tagline:'Globales Netzwerk fürs echte Leben',hero:'Was brauchst du<br>jetzt?',search:'Sag NOW, was du brauchst…',explore:'In der Nähe',create:'Erstellen',chat:'Chat',you:'Du'}
+};
+function detectLanguage(){let saved;try{saved=localStorage.getItem('nowLanguage')}catch(e){} if(saved&&LANGUAGES.some(x=>x[0]===saved))return saved;const raw=(navigator.languages&&navigator.languages[0])||navigator.language||'en';const base=raw.toLowerCase().split('-')[0];return LANGUAGES.some(x=>x[0]===base)?base:'en'}
+function applyLanguage(code){const t=I18N[code]||I18N.en;document.documentElement.lang=code;document.documentElement.dir=['ar','he','fa','ur'].includes(code)?'rtl':'ltr';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t[k])el.textContent=t[k]});document.querySelectorAll('[data-i18n-html]').forEach(el=>{const k=el.dataset.i18nHtml;if(t[k])el.innerHTML=t[k]});document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{const k=el.dataset.i18nPlaceholder;if(t[k])el.placeholder=t[k]});try{localStorage.setItem('nowLanguage',code)}catch(e){}}
+function initLanguages(){const s=document.getElementById('languageSelect');LANGUAGES.forEach(([c,n])=>{const o=document.createElement('option');o.value=c;o.textContent=n;s.appendChild(o)});const code=detectLanguage();s.value=code;applyLanguage(code);s.addEventListener('change',()=>applyLanguage(s.value))}
+document.addEventListener('DOMContentLoaded',initLanguages);
+
 function go(id,b){
  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
  document.getElementById(id).classList.add('active');
