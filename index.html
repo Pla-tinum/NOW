@@ -57,7 +57,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #c9b4ff;outline-offset:3p
 .row> :first-child{min-width:0;overflow-wrap:anywhere}.nav{z-index:5}.nav button{min-height:44px}
 .bigbtn{width:100%;border:0;border-radius:20px;padding:18px;background:var(--purple);color:white;font-weight:800;font-size:17px;margin-bottom:12px}
 .secondary{background:var(--card);border:1px solid var(--line)}
-textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;color:white;resize:none;margin-bottom:14px}
+.offer-grid{display:grid;gap:12px}.field-label{display:block;font-size:13px;color:var(--muted);margin:2px 4px 7px}.offer-hint{font-size:13px;color:var(--muted);line-height:1.4;margin:-3px 2px 4px}.offer-location{display:flex;gap:8px}.offer-location .search{flex:1}.offer-location button{white-space:nowrap}.offer-form textarea{min-height:110px}.offer-form .search{padding:16px;border-radius:18px}.offer-form .bigbtn{margin-top:4px} textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;color:white;resize:none;margin-bottom:14px}
 .chat{display:flex;gap:12px;align-items:center}
 .face{width:50px;height:50px;border-radius:50%;background:#252735;display:grid;place-items:center;font-size:22px}
 .chattext{flex:1}
@@ -101,14 +101,16 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 <section id="results" class="page">
 <input class="search" id="categorySearch" placeholder="Напиши свои предпочтения…" onkeydown="if(event.key==='Enter')refineResults()">
 <div id="resultModes" class="filters" style="margin-top:14px"></div>
-<div id="offerForm" class="card" style="display:none">
-<div class="title" id="offerFormTitle">Что вы предлагаете?</div>
-<textarea id="offerWhat" placeholder="Опишите предложение"></textarea>
-<input class="search" id="offerWhen" placeholder="Когда? Например: сегодня после 18:00" style="margin-bottom:12px">
-<input class="search" id="offerWhere" placeholder="Где? Местоположение определяется автоматически" style="margin-bottom:12px">
-<input class="search" id="offerPrice" placeholder="Цена / оплата (необязательно)" style="margin-bottom:12px">
-<button class="bigbtn" onclick="submitOffer()">Опубликовать</button>
-</div>
+<div id="offerForm" class="card offer-form" style="display:none">
+<div class="title" id="offerFormTitle">Создать предложение</div>
+<p class="offer-hint">Заполни только главное. NOW AI сам оформит понятное объявление.</p>
+<div class="offer-grid">
+<div><label class="field-label" for="offerWhat">Что предлагаете *</label><textarea id="offerWhat" placeholder="Например: нужен человек помочь разгрузить мебель"></textarea></div>
+<div><label class="field-label" for="offerWhen">Когда</label><input class="search" id="offerWhen" placeholder="Сегодня после 18:00"></div>
+<div><label class="field-label" for="offerWhere">Где</label><div class="offer-location"><input class="search" id="offerWhere" placeholder="Определим автоматически"><button class="pill secondary" type="button" onclick="fillOfferLocation()">◎ Сейчас</button></div></div>
+<div><label class="field-label" for="offerPrice">Оплата / цена</label><input class="search" id="offerPrice" placeholder="Например: 500 NOK"></div>
+<button class="bigbtn" onclick="submitOffer()">Продолжить</button>
+</div></div>
 <div class="head" id="resultsTitle">Предложения рядом</div>
 <p class="sub" id="resultsStatus">Ищем актуальные предложения рядом с вами…</p>
 <div id="resultsList"></div>
@@ -215,7 +217,8 @@ const RESULT_MODES={Earn:[['find','Найти работу'],['offer','Пред�
 let currentResultCategory='All',currentResultMode='';
 function renderResultModes(category){const box=document.getElementById('resultModes');box.replaceChildren();const modes=RESULT_MODES[category]||[];if(!currentResultMode&&modes.length)currentResultMode=modes[0][0];modes.forEach(([id,label])=>{const b=document.createElement('button');b.className='filter'+(currentResultMode===id?' active':'');b.textContent=label;b.onclick=()=>{currentResultMode=id;showResults(category,document.getElementById('categorySearch').value.trim())};box.appendChild(b)})}
 function isOfferMode(){return ['offer','create','sell'].includes(currentResultMode)}
-function toggleOfferForm(){const f=document.getElementById('offerForm');f.style.display=isOfferMode()?'block':'none';if(isOfferMode()){const names={Earn:'Предложить работу',Help:'Предложить помощь',People:'Создать активность',Rides:'Предложить поездку',Marketplace:'Продать',Share:'Предложить'};document.getElementById('offerFormTitle').textContent=names[currentResultCategory]||'Что вы предлагаете?'}}
+function toggleOfferForm(){const f=document.getElementById('offerForm');f.style.display=isOfferMode()?'block':'none';document.getElementById('categorySearch').style.display=isOfferMode()?'none':'block';if(isOfferMode()){const names={Earn:'Предложить работу',Help:'Предложить помощь',People:'Создать активность',Rides:'Предложить поездку',Marketplace:'Продать',Share:'Предложить'};document.getElementById('offerFormTitle').textContent=names[currentResultCategory]||'Создать предложение';if(!document.getElementById('offerWhere').value)fillOfferLocation()}}
+async function fillOfferLocation(){const el=document.getElementById('offerWhere');el.value='Определяем…';const p=await getPositionFast();el.value=p?'Текущее местоположение':'Bergen';}
 async function submitOffer(){const what=document.getElementById('offerWhat').value.trim();if(!what){popup('NOW','Опишите, что вы предлагаете.','Закрыть',closeSheet);return}const pos=await getPositionFast();const when=document.getElementById('offerWhen').value.trim();const where=document.getElementById('offerWhere').value.trim()||(pos?'Текущее местоположение':'');const price=document.getElementById('offerPrice').value.trim();let r={intent:'offer',category:currentResultCategory,title:what.slice(0,100),location:where,time:when,budget:price};try{r=Object.assign(r,await nowAI(what+' '+when+' '+where+' '+price))}catch(e){}try{await saveListing(what,r);popup('Опубликовано','Ваше предложение добавлено в NOW.','Смотреть предложения',()=>{closeSheet();currentResultMode=(RESULT_MODES[currentResultCategory]||[['find']])[0][0];showResults(currentResultCategory,'')})}catch(e){popup('NOW','Не удалось опубликовать. Попробуйте ещё раз.','Закрыть',closeSheet)}}
 async function refineResults(){await showResults(currentResultCategory,document.getElementById('categorySearch').value.trim())}
 async function showResults(category,query=''){currentResultCategory=category||'All';const modes=RESULT_MODES[currentResultCategory]||[];if(!modes.some(x=>x[0]===currentResultMode))currentResultMode=modes.length?modes[0][0]:'';
