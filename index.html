@@ -99,6 +99,8 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 </section>
 
 <section id="results" class="page">
+<input class="search" id="categorySearch" placeholder="Напиши свои предпочтения…" onkeydown="if(event.key==='Enter')refineResults()">
+<div id="resultModes" class="filters" style="margin-top:14px"></div>
 <div class="head" id="resultsTitle">Предложения рядом</div>
 <p class="sub" id="resultsStatus">Ищем актуальные предложения рядом с вами…</p>
 <div id="resultsList"></div>
@@ -201,8 +203,12 @@ function getPositionFast(){
   navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude}),()=>resolve(null),{enableHighAccuracy:true,timeout:5000,maximumAge:120000});
  });
 }
-async function showResults(category,query=''){
- go('results',null);
+const RESULT_MODES={Earn:[['find','Найти работу'],['offer','Предложить работу']],Help:[['need','Нужна помощь'],['offer','Могу помочь']],People:[['find','Найти людей'],['create','Создать активность']],Rides:[['find','Найти поездку'],['offer','Предложить поездку']],Marketplace:[['buy','Купить'],['sell','Продать']],Share:[['find','Найти'],['offer','Предложить']]};
+let currentResultCategory='All',currentResultMode='';
+function renderResultModes(category){const box=document.getElementById('resultModes');box.replaceChildren();const modes=RESULT_MODES[category]||[];if(!currentResultMode&&modes.length)currentResultMode=modes[0][0];modes.forEach(([id,label])=>{const b=document.createElement('button');b.className='filter'+(currentResultMode===id?' active':'');b.textContent=label;b.onclick=()=>{currentResultMode=id;showResults(category,document.getElementById('categorySearch').value.trim())};box.appendChild(b)})}
+async function refineResults(){await showResults(currentResultCategory,document.getElementById('categorySearch').value.trim())}
+async function showResults(category,query=''){currentResultCategory=category||'All';const modes=RESULT_MODES[currentResultCategory]||[];if(!modes.some(x=>x[0]===currentResultMode))currentResultMode=modes.length?modes[0][0]:'';
+ go('results',null); renderResultModes(currentResultCategory);
  document.getElementById('resultsTitle').textContent=uiText('Offers near you','Предложения рядом');
  document.getElementById('resultsStatus').textContent=uiText('Finding current offers near you…','Ищем актуальные предложения рядом с вами…');
  const list=document.getElementById('resultsList'); list.innerHTML='';
@@ -215,7 +221,7 @@ async function showResults(category,query=''){
  if(!items.length){list.innerHTML='<div class="card"><div class="title">'+uiText('No NOW offers yet','Пока нет предложений NOW')+'</div><div class="meta">'+uiText('We are expanding live local sources.','Подключаем дополнительные местные источники.')+'</div></div>';return}
  items.forEach(x=>{const c=document.createElement('button');c.className='card opportunity';const title=x.title||x.description||uiText('Offer','Предложение');const area=x.area||x.location||'Bergen';const price=x.price||'';c.innerHTML='<div class="row"><div class="title">'+title+'</div><div class="price">'+price+'</div></div><div class="meta">'+area+(x.category?' · '+x.category:'')+'</div>';c.onclick=()=>popup(title,(x.description||'')+(price?' · '+price:''),uiText('Close','Закрыть'),closeSheet);list.appendChild(c)})
 }
-async function instantSearch(category){await showResults(category,'')}
+async function instantSearch(category){currentResultMode='';document.getElementById('categorySearch').value='';await showResults(category,'')}
 function openCreate(text){
  go('create',document.querySelectorAll('.nav button')[2]);
  document.getElementById('createText').value=text+' ';
