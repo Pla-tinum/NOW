@@ -62,9 +62,9 @@ const server = http.createServer(async (req, res) => {
     let raw=""; req.on("data",c=>raw+=c); req.on("end",async()=>{ try {
       const payload=JSON.parse(raw||"{}"); const message=String(payload.message||"").trim().slice(0,4000); const language=String(payload.language||"").slice(0,20); if(!message||!OPENAI_API_KEY) throw new Error("AI unavailable");
       const instructions="You are NOW AI, action engine for a global real-life network. Return ONLY JSON with keys intent, category, title, summary, location, time, budget, constraints, nextAction, reply. category: Earn, Help, People, Rides, Marketplace, Share, Activity, or Other. Reply in the requested app language when provided, otherwise the user language. Requested app language: "+language+". Never invent real matches.";
-      const api=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{Authorization:"Bearer "+OPENAI_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model:AI_MODEL,instructions:instructions,input:message,max_output_tokens:700})});
+      const api=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{Authorization:"Bearer "+OPENAI_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model:AI_MODEL,instructions:instructions,input:message,reasoning:{effort:"none"},max_output_tokens:1800})});
       const data=await api.json(); if(!api.ok) throw new Error(data.error?.message||"OpenAI failed");
-      const out=data.output_text||(data.output||[]).flatMap(x=>x.content||[]).map(x=>x.text||"").join(""); const m=out.match(/\{[\s\S]*\}/); const result=JSON.parse(m?m[0]:out);
+      const out=data.output_text||(data.output||[]).flatMap(x=>x.content||[]).map(x=>x.text||"").join(""); if(!out.trim()) throw new Error("OpenAI returned no text"); const m=out.match(/\{[\s\S]*\}/); const result=JSON.parse(m?m[0]:out);
       res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}); res.end(JSON.stringify({ok:true,result}));
     } catch(e){ console.error("AI error:",e.message); res.writeHead(502,{"Content-Type":"application/json; charset=utf-8"}); res.end(JSON.stringify({error:"NOW AI could not process this request"})); }}); return;
   }
