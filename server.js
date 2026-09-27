@@ -17,8 +17,8 @@ const server = http.createServer(async (req, res) => {
   const pathname = req.url.split("?")[0];
   if (req.method === "POST" && pathname === "/api/ai") {
     let raw=""; req.on("data",c=>raw+=c); req.on("end",async()=>{ try {
-      const message=String(JSON.parse(raw||"{}").message||"").trim().slice(0,4000); if(!message||!OPENAI_API_KEY) throw new Error("AI unavailable");
-      const instructions="You are NOW AI, action engine for a global real-life network. Return ONLY JSON with keys intent, category, title, summary, location, time, budget, constraints, nextAction, reply. category: Earn, Help, People, Rides, Marketplace, Share, Activity, or Other. Reply in the user language. Never invent real matches.";
+      const payload=JSON.parse(raw||"{}"); const message=String(payload.message||"").trim().slice(0,4000); const language=String(payload.language||"").slice(0,20); if(!message||!OPENAI_API_KEY) throw new Error("AI unavailable");
+      const instructions="You are NOW AI, action engine for a global real-life network. Return ONLY JSON with keys intent, category, title, summary, location, time, budget, constraints, nextAction, reply. category: Earn, Help, People, Rides, Marketplace, Share, Activity, or Other. Reply in the requested app language when provided, otherwise the user language. Requested app language: "+language+". Never invent real matches.";
       const api=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{Authorization:"Bearer "+OPENAI_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model:AI_MODEL,instructions:instructions,input:message,max_output_tokens:700})});
       const data=await api.json(); if(!api.ok) throw new Error(data.error?.message||"OpenAI failed");
       const out=data.output_text||(data.output||[]).flatMap(x=>x.content||[]).map(x=>x.text||"").join(""); const m=out.match(/\{[\s\S]*\}/); const result=JSON.parse(m?m[0]:out);
