@@ -7,6 +7,11 @@ const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const AI_MODEL = process.env.OPENAI_MODEL || "gpt-5.6-luna";
 const pool = process.env.DATABASE_URL ? new Pool({connectionString:process.env.DATABASE_URL}) : null;
+const COUNTRY_SOURCES={
+ NO:{currency:"NOK",domains:["finn.no","arbeidsplassen.nav.no"],categories:{Marketplace:["finn.no"],Cars:["finn.no"],Housing:["finn.no"],Jobs:["finn.no","arbeidsplassen.nav.no"]}},
+ ES:{currency:"EUR",domains:["wallapop.com","milanuncios.com","idealista.com","infojobs.net"],categories:{Marketplace:["wallapop.com","milanuncios.com"],Housing:["idealista.com"],Jobs:["infojobs.net"]}},
+ DE:{currency:"EUR",domains:["kleinanzeigen.de","mobile.de","immobilienscout24.de"],categories:{Marketplace:["kleinanzeigen.de"],Cars:["mobile.de"],Housing:["immobilienscout24.de"]}}
+};
 async function initDb(){
  if(!pool)return;
  await pool.query("CREATE TABLE IF NOT EXISTS users(id BIGSERIAL PRIMARY KEY, device_id TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL DEFAULT 'NOW User', language TEXT DEFAULT 'en', created_at TIMESTAMPTZ DEFAULT NOW())");
@@ -23,6 +28,12 @@ const routes = {
 };
 const server = http.createServer(async (req, res) => {
   const pathname = req.url.split("?")[0];
+  if (req.method === "GET" && pathname === "/api/sources") {
+    const country=String(new URL(req.url,"http://localhost").searchParams.get("country")||"NO").toUpperCase();
+    const config=COUNTRY_SOURCES[country]||{currency:null,domains:[],categories:{}};
+    res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=3600"});
+    res.end(JSON.stringify({country,...config})); return;
+  }
   if (req.method === "GET" && pathname === "/api/listings") {
     try { if(!pool) throw new Error("Database unavailable"); const q=await pool.query("SELECT l.*,u.display_name FROM listings l LEFT JOIN users u ON u.id=l.user_id WHERE l.status='active' ORDER BY l.created_at DESC LIMIT 50"); res.writeHead(200,{"Content-Type":"application/json; charset=utf-8"}); res.end(JSON.stringify({listings:q.rows})); }
     catch(e){res.writeHead(503,{"Content-Type":"application/json; charset=utf-8"});res.end(JSON.stringify({error:"Database unavailable"}));} return;
