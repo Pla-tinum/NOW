@@ -34,7 +34,7 @@ function initExplore() {
   if (window.ResizeObserver) new ResizeObserver(() => {
     if (document.getElementById('map').clientWidth) exploreMap.invalidateSize({pan:false});
   }).observe(document.getElementById('map'));
-  const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {subdomains:'abc',
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(exploreMap);
