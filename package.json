@@ -1,1 +1,15 @@
-{"name":"now-app","version":"1.0.0","private":true,"scripts":{"start":"node server.js"},"engines":{"node":">=18"},"dependencies":{"leaflet":"^1.9.4"}}
+{
+  "name": "now-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "pg": "^8.16.3"
+  }
+}
