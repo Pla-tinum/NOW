@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { Pool } = require("pg");
+const crypto = require("crypto");
 
 const PORT = process.env.PORT || 3000;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -27,6 +28,7 @@ const COUNTRY_SOURCES={
 async function initDb(){
  if(!pool)return;
  await pool.query("CREATE TABLE IF NOT EXISTS users(id BIGSERIAL PRIMARY KEY, device_id TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL DEFAULT 'NOW User', language TEXT DEFAULT 'en', created_at TIMESTAMPTZ DEFAULT NOW())");
+ await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE"); await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT"); await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS session_token TEXT UNIQUE"); await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()");
  await pool.query("CREATE TABLE IF NOT EXISTS listings(id BIGSERIAL PRIMARY KEY, user_id BIGINT REFERENCES users(id), kind TEXT NOT NULL DEFAULT 'need', title TEXT NOT NULL, description TEXT NOT NULL, category TEXT, location TEXT, price TEXT, language TEXT DEFAULT 'en', status TEXT DEFAULT 'active', created_at TIMESTAMPTZ DEFAULT NOW())");
 }
 initDb().catch(e=>console.error("DB init:",e.message));
@@ -45,6 +47,12 @@ const server = http.createServer(async (req, res) => {
     const config=COUNTRY_SOURCES[country]||{currency:null,sources:{}};
     res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=3600"});
     res.end(JSON.stringify({country,...config})); return;
+  }
+  if (req.method === "POST" && (pathname === "/api/auth/register" || pathname === "/api/auth/login")) {
+    let raw=""; req.on("data",c=>raw+=c); req.on("end",async()=>{try{if(!pool)throw new Error("Database unavailable");const b=JSON.parse(raw||"{}");const email=String(b.email||"").trim().toLowerCase().slice(0,200),password=String(b.password||""),name=String(b.name||"NOW User").trim().slice(0,100);if(!email.includes("@")||password.length<6)throw new Error("Invalid email or password");const hash=crypto.scryptSync(password,"now-v1",64).toString("hex"),token=crypto.randomBytes(32).toString("hex");let q;if(pathname.endsWith("register")){q=await pool.query("INSERT INTO users(device_id,email,password_hash,display_name,language,session_token) VALUES($1,$2,$3,$4,$5,$6) RETURNING id,email,display_name,language",["acct-"+crypto.randomUUID(),email,hash,name||"NOW User",String(b.language||"en").slice(0,10),token])}else{q=await pool.query("UPDATE users SET session_token=$1,updated_at=NOW() WHERE email=$2 AND password_hash=$3 RETURNING id,email,display_name,language",[token,email,hash]);if(!q.rows.length)throw new Error("Wrong email or password")}res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({user:q.rows[0],token}))}catch(e){res.writeHead(400,{"Content-Type":"application/json; charset=utf-8"});res.end(JSON.stringify({error:e.message}))}});return;
+  }
+  if (req.method === "GET" && pathname === "/api/me") {
+    try{if(!pool)throw new Error();const token=String(req.headers.authorization||"").replace(/^Bearer\s+/i,"");const q=await pool.query("SELECT id,email,display_name,language,created_at FROM users WHERE session_token=$1",[token]);if(!q.rows.length)throw new Error();const l=await pool.query("SELECT * FROM listings WHERE user_id=$1 ORDER BY created_at DESC",[q.rows[0].id]);res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({user:q.rows[0],listings:l.rows}))}catch(e){res.writeHead(401,{"Content-Type":"application/json; charset=utf-8"});res.end(JSON.stringify({error:"Unauthorized"}))}return;
   }
   if (req.method === "GET" && pathname === "/api/listings") {
     try { if(!pool) throw new Error("Database unavailable"); const q=await pool.query("SELECT l.*,u.display_name FROM listings l LEFT JOIN users u ON u.id=l.user_id WHERE l.status='active' ORDER BY l.created_at DESC LIMIT 50"); res.writeHead(200,{"Content-Type":"application/json; charset=utf-8"}); res.end(JSON.stringify({listings:q.rows})); }
