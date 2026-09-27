@@ -228,13 +228,15 @@ async function matchNeed(){
  try{const r=await nowAI(v);popup(r.title||'NOW AI',r.reply||r.summary||'Request understood.','Create action',()=>{closeSheet();openCreate(v)})}
  catch(e){popup('NOW AI','AI is temporarily unavailable. Try again in a moment.')}
 }
+function deviceId(){let id;try{id=localStorage.getItem('nowDeviceId');if(!id){id=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random());localStorage.setItem('nowDeviceId',id)}}catch(e){id='web-'+Date.now()}return id}
+async function saveListing(v,r){const response=await fetch('/api/listings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:deviceId(),language:window.NOW_LANGUAGE||'en',kind:r.intent||'need',title:r.title||v.slice(0,100),description:v,category:r.category||'Other',location:r.location||'',price:r.budget||''})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Save failed');return data.listing}
 async function publish(){
  let v=document.getElementById('createText').value.trim(); if(!v){popup('Tell NOW what you need','Write your request first.');return}
  popup('NOW AI','Structuring your request…');
  try{
-  const r=await nowAI(v); try{localStorage.setItem('nowLastRequest',JSON.stringify({text:v,ai:r}))}catch(error){}
+  const r=await nowAI(v); const listing=await saveListing(v,r); try{localStorage.setItem('nowLastRequest',JSON.stringify({text:v,ai:r,listing:listing}))}catch(error){}
   const details=[r.category,r.time,r.budget,r.location].filter(Boolean).join(' · ');
-  popup(r.title||'Request ready',(r.reply||r.summary||'NOW understood your request.')+(details?'\n\n'+details:''),'Explore matches',()=>{closeSheet();go('explore',document.querySelectorAll('.nav button')[1])});
+  popup(r.title||'Request published',(r.reply||r.summary||'NOW understood and published your request.')+(details?'\n\n'+details:''),'Explore matches',()=>{closeSheet();go('explore',document.querySelectorAll('.nav button')[1])});
  }catch(e){popup('NOW AI','AI is temporarily unavailable. Your request has not been lost.')}
 }
 function deal(name,price){
