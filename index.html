@@ -308,13 +308,13 @@ async function matchNeed(){
 function deviceId(){let id;try{id=localStorage.getItem('nowDeviceId');if(!id){id=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random());localStorage.setItem('nowDeviceId',id)}}catch(e){id='web-'+Date.now()}return id}
 async function saveListing(v,r){const response=await fetch('/api/listings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(localStorage.getItem('nowToken')||'')},body:JSON.stringify({deviceId:deviceId(),language:window.NOW_LANGUAGE||'en',kind:r.intent||'need',title:r.title||v.slice(0,100),description:v,category:r.category||'Other',location:r.location||'',price:r.budget||'',country:(localStorage.getItem('nowCountry')||'NO').toUpperCase(),latitude:r.latitude,longitude:r.longitude})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Save failed');return data.listing}
 async function publish(){
- let v=document.getElementById('createText').value.trim(); if(!v){popup('Tell NOW what you need','Write your request first.');return}
- popup('NOW AI','Structuring your request…');
+ let v=document.getElementById('createText').value.trim(); if(!v){popup('NOW',uiText('Write your request first.','Сначала напишите запрос.'),uiText('Close','Закрыть'),closeSheet);return}
+ popup('NOW AI',uiText('Structuring your request…','Разбираем ваш запрос…'));
  try{
-  const r=await nowAI(v); const listing=await saveListing(v,r); try{localStorage.setItem('nowLastRequest',JSON.stringify({text:v,ai:r,listing:listing}))}catch(error){}
-  const details=[r.category,r.time,r.budget,r.location].filter(Boolean).join(' · ');
-  popup(r.title||'Request published',(r.reply||r.summary||'NOW understood and published your request.')+(details?'\n\n'+details:''),'Explore matches',()=>{closeSheet();go('explore',document.querySelectorAll('.nav button')[1])});
- }catch(e){popup('NOW AI','AI is temporarily unavailable. Your request has not been lost.')}
+  const r=await nowAI(v); const details=[r.category,r.time,r.budget,r.location].filter(Boolean).join(' · ');
+  const confirmText=(r.title||v.slice(0,100))+(details?'\n\n'+details:'')+'\n\n'+uiText('Publish this listing?','Опубликовать это объявление?');
+  popup(uiText('Check before publishing','Проверьте перед публикацией'),confirmText,uiText('Publish','Опубликовать'),async()=>{try{const pos=await getPositionFast();r.latitude=pos&&pos.lat;r.longitude=pos&&pos.lng;const listing=await saveListing(v,r);try{localStorage.setItem('nowLastRequest',JSON.stringify({text:v,ai:r,listing}))}catch(error){}popup(uiText('Published','Опубликовано'),uiText('Your listing is live in NOW.','Ваше объявление опубликовано в NOW.'),uiText('View results','Смотреть результаты'),()=>{closeSheet();showResults(r.category||'All',v)})}catch(e){popup('NOW',uiText('Could not publish. Please try again.','Не удалось опубликовать. Попробуйте ещё раз.'),'OK',closeSheet)}});
+ }catch(e){popup('NOW AI',uiText('AI is temporarily unavailable. Your text is still here.','AI временно недоступен. Ваш текст сохранён в форме.'),'OK',closeSheet)}
 }
 function deal(name,price){
  popup(name,'Available now · '+price+' · Payment protected by NOW.');
