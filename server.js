@@ -8,10 +8,22 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const AI_MODEL = process.env.OPENAI_MODEL || "gpt-5.6-luna";
 const pool = process.env.DATABASE_URL ? new Pool({connectionString:process.env.DATABASE_URL}) : null;
 const COUNTRY_SOURCES={
- NO:{currency:"NOK",domains:["finn.no","arbeidsplassen.nav.no"],categories:{Marketplace:["finn.no"],Cars:["finn.no"],Housing:["finn.no"],Jobs:["finn.no","arbeidsplassen.nav.no"]}},
- ES:{currency:"EUR",domains:["wallapop.com","milanuncios.com","idealista.com","infojobs.net"],categories:{Marketplace:["wallapop.com","milanuncios.com"],Housing:["idealista.com"],Jobs:["infojobs.net"]}},
- DE:{currency:"EUR",domains:["kleinanzeigen.de","mobile.de","immobilienscout24.de"],categories:{Marketplace:["kleinanzeigen.de"],Cars:["mobile.de"],Housing:["immobilienscout24.de"]}}
-};
+ NO:{currency:"NOK",sources:{Marketplace:["finn.no","tise.com"],Cars:["finn.no"],Housing:["finn.no","hybel.no"],Jobs:["finn.no","arbeidsplassen.nav.no"],Travel:["finn.no","entur.no"]}},
+ SE:{currency:"SEK",sources:{Marketplace:["blocket.se","tradera.com"],Cars:["blocket.se","wayke.se"],Housing:["hemnet.se","booli.se"],Jobs:["arbetsformedlingen.se","jobbsafari.se"]}},
+ DK:{currency:"DKK",sources:{Marketplace:["dba.dk"],Cars:["bilbasen.dk"],Housing:["boligsiden.dk"],Jobs:["jobindex.dk"]}},
+ FI:{currency:"EUR",sources:{Marketplace:["tori.fi","huuto.net"],Cars:["nettiauto.com"],Housing:["etuovi.com","oikotie.fi"],Jobs:["tyomarkkinatori.fi"]}},
+ ES:{currency:"EUR",sources:{Marketplace:["wallapop.com","milanuncios.com"],Cars:["coches.net","milanuncios.com"],Housing:["idealista.com","fotocasa.es"],Jobs:["infojobs.net","indeed.com"]}},
+ DE:{currency:"EUR",sources:{Marketplace:["kleinanzeigen.de"],Cars:["mobile.de","autoscout24.de"],Housing:["immobilienscout24.de","immowelt.de"],Jobs:["stepstone.de","arbeitsagentur.de"]}},
+ FR:{currency:"EUR",sources:{Marketplace:["leboncoin.fr"],Cars:["lacentrale.fr","leboncoin.fr"],Housing:["seloger.com","leboncoin.fr"],Jobs:["francetravail.fr","hellowork.com"]}},
+ IT:{currency:"EUR",sources:{Marketplace:["subito.it"],Cars:["autoscout24.it","subito.it"],Housing:["immobiliare.it","idealista.it"],Jobs:["infojobs.it","indeed.com"]}},
+ NL:{currency:"EUR",sources:{Marketplace:["marktplaats.nl"],Cars:["gaspedaal.nl","autoscout24.nl"],Housing:["funda.nl"],Jobs:["werk.nl","indeed.com"]}},
+ GB:{currency:"GBP",sources:{Marketplace:["gumtree.com","ebay.co.uk"],Cars:["autotrader.co.uk"],Housing:["rightmove.co.uk","zoopla.co.uk"],Jobs:["reed.co.uk","indeed.com"]}},
+ US:{currency:"USD",sources:{Marketplace:["craigslist.org","ebay.com"],Cars:["autotrader.com","cars.com"],Housing:["zillow.com","realtor.com"],Jobs:["indeed.com","linkedin.com"]}},
+ CA:{currency:"CAD",sources:{Marketplace:["kijiji.ca","ebay.ca"],Cars:["autotrader.ca"],Housing:["realtor.ca"],Jobs:["jobbank.gc.ca","indeed.com"]}},
+ AU:{currency:"AUD",sources:{Marketplace:["gumtree.com.au","ebay.com.au"],Cars:["carsales.com.au"],Housing:["realestate.com.au","domain.com.au"],Jobs:["seek.com.au","indeed.com"]}},
+ PL:{currency:"PLN",sources:{Marketplace:["olx.pl","allegro.pl"],Cars:["otomoto.pl"],Housing:["otodom.pl"],Jobs:["pracuj.pl","praca.pl"]}},
+ UA:{currency:"UAH",sources:{Marketplace:["olx.ua","prom.ua"],Cars:["auto.ria.com"],Housing:["dom.ria.com","lun.ua"],Jobs:["work.ua","robota.ua"]}}
+}
 async function initDb(){
  if(!pool)return;
  await pool.query("CREATE TABLE IF NOT EXISTS users(id BIGSERIAL PRIMARY KEY, device_id TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL DEFAULT 'NOW User', language TEXT DEFAULT 'en', created_at TIMESTAMPTZ DEFAULT NOW())");
@@ -30,7 +42,7 @@ const server = http.createServer(async (req, res) => {
   const pathname = req.url.split("?")[0];
   if (req.method === "GET" && pathname === "/api/sources") {
     const country=String(new URL(req.url,"http://localhost").searchParams.get("country")||"NO").toUpperCase();
-    const config=COUNTRY_SOURCES[country]||{currency:null,domains:[],categories:{}};
+    const config=COUNTRY_SOURCES[country]||{currency:null,sources:{}};
     res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age=3600"});
     res.end(JSON.stringify({country,...config})); return;
   }
