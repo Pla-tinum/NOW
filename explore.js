@@ -25,7 +25,7 @@ let selectedCategory = 'All';
 function initExplore() {
   if (exploreMap) { exploreMap.invalidateSize(); return; }
   if (!window.L) {
-    document.getElementById('mapStatus').textContent = 'Map could not load. Browse the demo listings below or reload to retry.';
+    document.getElementById('mapStatus').textContent = uiText('Map could not load. Browse nearby listings below or reload to retry.','Карта не загрузилась. Посмотрите предложения ниже или обновите страницу.');
     renderOpportunities();
     return;
   }
@@ -39,7 +39,7 @@ function initExplore() {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(exploreMap);
   tiles.on('tileerror', () => {
-    document.getElementById('mapStatus').textContent = 'Some streets could not load. Check your connection; demo listings are still available below.';
+    document.getElementById('mapStatus').textContent = uiText('Some map tiles could not load. Check your connection.','Часть карты не загрузилась. Проверьте подключение.');
   });
   tiles.on('load', () => {
     const failed = [...tiles.getContainer().querySelectorAll('img')].some(tile => !tile.naturalWidth);
@@ -104,29 +104,29 @@ function locateUser() {
     userPosition = null;
     if (userMarker) { userMarker.remove(); userMarker = null; }
     if (accuracyCircle) { accuracyCircle.remove(); accuracyCircle = null; }
-    status.textContent = `${message} Showing Solheimsviken · Bergen instead.`;
+    status.textContent = message+' '+uiText('Showing Bergen instead.','Показываем Берген.');
     showBergen();
     renderOpportunities();
   };
   if (!navigator.geolocation || !window.isSecureContext) {
-    fallback('Location is unavailable in this browser.');
+    fallback(uiText('Location is unavailable in this browser.','Геолокация недоступна в этом браузере.'));
     return;
   }
   button.disabled = true;
-  status.textContent = 'Finding your location…';
+  status.textContent = uiText('Finding your location…','Определяем ваше местоположение…');
   navigator.geolocation.getCurrentPosition(position => {
     button.disabled = false;
     const {latitude, longitude, accuracy} = position.coords;
     userPosition = [latitude, longitude];
-    status.textContent = `Your location · accurate to about ${Math.round(accuracy)} m. Demo opportunities are in Bergen.`;
+    status.textContent = uiText('Your location','Ваше местоположение')+' · ±'+Math.round(accuracy)+' m';
     if (exploreMap) {
       if (userMarker) userMarker.remove();
       if (accuracyCircle) accuracyCircle.remove();
       accuracyCircle = L.circle(userPosition, {radius:accuracy, color:'#65c8ff', weight:1, fillOpacity:.08, interactive:false}).addTo(exploreMap);
-      userMarker = L.marker(userPosition, {icon:L.divIcon({className:'user-dot',iconSize:[20,20]}), title:'Your location', alt:'Your location', zIndexOffset:1000}).addTo(exploreMap);
+      userMarker = L.marker(userPosition, {icon:L.divIcon({className:'user-dot',iconSize:[20,20]}), title:uiText('Your location','Ваше местоположение'), alt:uiText('Your location','Ваше местоположение'), zIndexOffset:1000}).addTo(exploreMap);
       exploreMap.stop().setView(userPosition, 14, {animate:false, reset:true});
     }
     renderOpportunities();
-  }, error => fallback(error.code === 1 ? 'Location permission denied.' : error.code === 3 ? 'Location request timed out.' : 'Could not determine your location.'),
+  }, error => fallback(error.code === 1 ? uiText('Location permission denied.','Доступ к геолокации запрещён.') : error.code === 3 ? uiText('Location request timed out.','Время определения местоположения истекло.') : uiText('Could not determine your location.','Не удалось определить местоположение.')),
   {enableHighAccuracy:true, timeout:10000, maximumAge:60000});
 }
