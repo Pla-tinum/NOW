@@ -19,6 +19,7 @@ const opportunities = [
   ['Marketplace', 'City bike looking for a new owner', 60.3851, 5.325, 'Nygårdsparken', '1,200 NOK', 'Used adult city bike with lights and lock. Inspect on collection.'],
   ['Marketplace', 'Small oak coffee table', 60.3802, 5.3365, 'Florida', '350 NOK', 'Good condition, 80 × 50 cm. Local pickup by arrangement.']
 ].map(([category, title, lat, lng, area, price, description]) => ({category, title, lat, lng, area, price, description}));
+window.NOW_OPPORTUNITIES = opportunities;
 let exploreMap, opportunityLayer, userMarker, accuracyCircle, userPosition;
 let selectedCategory = 'All';
 function initExplore() {
