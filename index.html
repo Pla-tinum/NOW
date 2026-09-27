@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#08090d">
 <title>NOW — Global Real-Life Network</title>
+<link rel="stylesheet" href="/vendor/leaflet.css">
 <style>
 *{box-sizing:border-box}
 :root{--bg:#08090d;--card:#15161d;--line:#292b36;--text:#fff;--muted:#9294a3;--purple:#7c46ff}
@@ -40,13 +41,19 @@ h2{font-size:25px;margin:0 0 17px}
 .head{font-size:32px;font-weight:850;margin:5px 0 20px}
 .filters{display:flex;gap:8px;overflow:auto;margin-bottom:16px}
 .filter{white-space:nowrap;border:1px solid var(--line);background:var(--card);color:white;border-radius:20px;padding:9px 14px}
-.map{height:280px;border-radius:28px;background:
-radial-gradient(circle at 25% 25%,#7c46ff 0 5px,transparent 6px),
-radial-gradient(circle at 70% 35%,#ffb238 0 5px,transparent 6px),
-radial-gradient(circle at 50% 70%,#3bd48d 0 5px,transparent 6px),
-linear-gradient(35deg,#151720,#101118);
-position:relative;overflow:hidden;border:1px solid var(--line);margin-bottom:20px}
-.map:after{content:"Solheimsviken · Bergen";position:absolute;bottom:15px;left:15px;background:#090a0dcc;padding:9px 13px;border-radius:15px;font-size:13px}
+.map{height:clamp(300px,52vh,440px);height:clamp(300px,52svh,440px);border-radius:28px;background:#151720;position:relative;overflow:hidden;border:1px solid var(--line);margin-bottom:12px;isolation:isolate;z-index:0}
+.filter.active{background:var(--purple);border-color:var(--purple)}
+.filters{padding-bottom:4px}.filter,.map-tools button{min-height:44px}
+.map-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.map-tools button{font-size:14px}.map-status{font-size:13px;line-height:1.5;margin:0 0 14px}
+.now-marker{background:none;border:0}.marker-pin{display:grid;place-items:center;width:44px;height:44px;border:2px solid white;border-radius:16px 16px 16px 4px;background:var(--marker-color);color:white;font-size:22px;box-shadow:0 3px 12px #0008}
+.user-dot{background:#65c8ff;border:3px solid white;border-radius:50%;box-shadow:0 0 0 5px #65c8ff44}
+.leaflet-tile-pane{filter:brightness(.75) saturate(.65)}
+.leaflet-container{font-family:inherit}.leaflet-bar a{background:#15161d;color:white;min-width:44px;min-height:44px;line-height:44px}.leaflet-bar a:hover{background:#292b36;color:white}
+.leaflet-container .leaflet-control-attribution{background:#15161def;color:#ddd;font-size:10px;padding:2px 12px}.leaflet-control-attribution a{color:#c9b4ff}
+.opportunity{width:100%;color:white;text-align:left}.opportunity .meta{margin-bottom:0}
+button:focus-visible,a:focus-visible{outline:3px solid #c9b4ff;outline-offset:3px}
+.row> :first-child{min-width:0;overflow-wrap:anywhere}.nav{z-index:5}.nav button{min-height:44px}
 .bigbtn{width:100%;border:0;border-radius:20px;padding:18px;background:var(--purple);color:white;font-weight:800;font-size:17px;margin-bottom:12px}
 .secondary{background:var(--card);border:1px solid var(--line)}
 textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;color:white;resize:none;margin-bottom:14px}
@@ -63,8 +70,8 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 .stat small{color:var(--muted)}
 .sheet{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;z-index:10}
 .sheet.show{display:flex}
-.sheetbox{background:#15161d;width:min(520px,100%);margin:auto;border-radius:30px 30px 0 0;padding:25px 20px calc(30px + env(safe-area-inset-bottom))}
-.close{float:right;background:#292b36;border:0;color:white;width:35px;height:35px;border-radius:50%}
+.sheetbox{background:#15161d;width:min(520px,100%);margin:0 auto;border-radius:30px 30px 0 0;padding:25px 20px calc(30px + env(safe-area-inset-bottom))}
+.sheetbox{max-height:85vh;max-height:85dvh;overflow:auto}.close{float:right;background:#292b36;border:0;color:white;width:35px;height:35px;border-radius:50%}
 </style>
 </head>
 <body>
@@ -92,11 +99,15 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 
 <section id="explore" class="page">
 <div class="head">Explore nearby</div>
-<div class="filters"><button class="filter">ALL</button><button class="filter">Earn</button><button class="filter">Help</button><button class="filter">People</button><button class="filter">Rides</button><button class="filter">Market</button></div>
-<div class="map"></div>
-<div class="card"><div class="title">⚡ 12 opportunities nearby</div><div class="meta">Updated right now</div></div>
-<div class="card"><div class="row"><b>Furniture assembly</b><span>700 NOK</span></div><div class="meta">1.3 km · Today</div></div>
-<div class="card"><div class="row"><b>Football tonight</b><span>5 people</span></div><div class="meta">2.1 km · 20:00</div></div>
+<div class="filters" role="group" aria-label="Opportunity categories">
+<button class="filter active" data-category="All" aria-pressed="true">ALL</button><button class="filter" data-category="Earn" aria-pressed="false">Earn</button><button class="filter" data-category="Help" aria-pressed="false">Help</button><button class="filter" data-category="People" aria-pressed="false">People</button><button class="filter" data-category="Rides" aria-pressed="false">Rides</button><button class="filter" data-category="Marketplace" aria-pressed="false">Marketplace</button>
+</div>
+<div class="map-tools"><button id="locate" class="pill" onclick="locateUser()">◎ Use my location</button><button class="pill secondary" onclick="showBergen()">Bergen demos</button></div>
+<p id="locationStatus" class="sub map-status" role="status">Showing Solheimsviken · Bergen. Use your location for distances from you.</p>
+<div id="map" class="map" role="region" aria-label="Interactive map of opportunities in Bergen"></div>
+<p id="mapStatus" class="sub map-status" role="status"></p>
+<div class="card"><div id="opportunityCount" class="title"></div><div class="meta" style="margin-bottom:0">Demo listings · Distances are straight-line estimates</div></div>
+<div id="opportunityList"></div>
 </section>
 
 <section id="create" class="page">
@@ -140,14 +151,16 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 </div></nav>
 
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()">
-<div class="sheetbox">
-<button class="close" onclick="closeSheet()">×</button>
+<div class="sheetbox" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-describedby="sheetText" tabindex="-1">
+<button class="close" aria-label="Close dialog" onclick="closeSheet()">×</button>
 <h2 id="sheetTitle">NOW Match</h2>
 <p class="sub" id="sheetText">Ready.</p>
-<button class="bigbtn" onclick="closeSheet()">Continue</button>
+<button id="sheetAction" class="bigbtn" onclick="closeSheet()">Continue</button>
 </div>
 </div>
 
+<script src="/vendor/leaflet.js"></script>
+<script src="/explore.js"></script>
 <script>
 function go(id,b){
  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
@@ -155,18 +168,38 @@ function go(id,b){
  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
  if(b)b.classList.add('active');
  window.scrollTo(0,0);
+ if(id==='explore')requestAnimationFrame(initExplore);
 }
 function openCreate(text){
  go('create',document.querySelectorAll('.nav button')[2]);
  document.getElementById('createText').value=text+' ';
  document.getElementById('createText').focus();
 }
-function popup(title,text){
+let sheetReturnFocus;
+function popup(title,text,actionLabel='Continue',action=closeSheet){
+ sheetReturnFocus=document.activeElement;
+ const actionButton=document.getElementById('sheetAction');
+ actionButton.textContent=actionLabel;
+ actionButton.onclick=action;
  document.getElementById('sheetTitle').textContent=title;
  document.getElementById('sheetText').textContent=text;
  document.getElementById('sheet').classList.add('show');
+ document.querySelector('.sheetbox').focus();
 }
-function closeSheet(){document.getElementById('sheet').classList.remove('show')}
+function closeSheet(){
+ document.getElementById('sheet').classList.remove('show');
+ if(sheetReturnFocus && sheetReturnFocus.isConnected)sheetReturnFocus.focus({preventScroll:true});
+}
+document.addEventListener('keydown',event=>{
+ if(!document.getElementById('sheet').classList.contains('show'))return;
+ if(event.key==='Escape')closeSheet();
+ if(event.key==='Tab'){
+  const buttons=[...document.querySelectorAll('.sheetbox button')];
+  const first=buttons[0],last=buttons[buttons.length-1];
+  if(event.shiftKey && (document.activeElement===first || document.activeElement===document.querySelector('.sheetbox'))){event.preventDefault();last.focus()}
+  else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first.focus()}
+ }
+});
 function matchNeed(){
  let v=document.getElementById('need').value.trim();
  if(!v)return;
@@ -175,7 +208,7 @@ function matchNeed(){
 function publish(){
  let v=document.getElementById('createText').value.trim();
  if(!v){popup('Tell NOW what you need','Write your request first.');return}
- localStorage.setItem('nowLastRequest',v);
+ try{localStorage.setItem('nowLastRequest',v)}catch(error){/* Requests still work when Safari storage is unavailable. */}
  popup('Request ready','NOW understood your request and found nearby matches.');
 }
 function deal(name,price){
