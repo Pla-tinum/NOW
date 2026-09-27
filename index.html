@@ -112,7 +112,7 @@ textarea{width:100%;min-height:150px;background:var(--card);border:1px solid var
 
 <section id="create" class="page">
 <div class="head">Create</div>
-<p class="sub">Tell NOW naturally. We'll structure it for you.</p>
+<p class="sub">Tell NOW naturally. AI will understand it and structure the action.</p>
 <textarea id="createText" placeholder="Example: I need someone with a van to move a sofa tonight for 500 NOK"></textarea>
 <button class="bigbtn" onclick="publish()">Find matches now</button>
 <button class="bigbtn secondary" onclick="openCreate('I offer')">I OFFER SOMETHING</button>
@@ -200,16 +200,24 @@ document.addEventListener('keydown',event=>{
   else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first.focus()}
  }
 });
-function matchNeed(){
- let v=document.getElementById('need').value.trim();
- if(!v)return;
- popup('Matches found','NOW found 7 possible matches near you for: “'+v+'”');
+async function nowAI(v){
+ const response=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:v})});
+ const data=await response.json(); if(!response.ok)throw new Error(data.error||'AI unavailable'); return data.result;
 }
-function publish(){
- let v=document.getElementById('createText').value.trim();
- if(!v){popup('Tell NOW what you need','Write your request first.');return}
- try{localStorage.setItem('nowLastRequest',v)}catch(error){/* Requests still work when Safari storage is unavailable. */}
- popup('Request ready','NOW understood your request and found nearby matches.');
+async function matchNeed(){
+ let v=document.getElementById('need').value.trim(); if(!v)return;
+ popup('NOW AI','Understanding your request…');
+ try{const r=await nowAI(v);popup(r.title||'NOW AI',r.reply||r.summary||'Request understood.','Create action',()=>{closeSheet();openCreate(v)})}
+ catch(e){popup('NOW AI','AI is temporarily unavailable. Try again in a moment.')}
+}
+async function publish(){
+ let v=document.getElementById('createText').value.trim(); if(!v){popup('Tell NOW what you need','Write your request first.');return}
+ popup('NOW AI','Structuring your request…');
+ try{
+  const r=await nowAI(v); try{localStorage.setItem('nowLastRequest',JSON.stringify({text:v,ai:r}))}catch(error){}
+  const details=[r.category,r.time,r.budget,r.location].filter(Boolean).join(' · ');
+  popup(r.title||'Request ready',(r.reply||r.summary||'NOW understood your request.')+(details?'\n\n'+details:''),'Explore matches',()=>{closeSheet();go('explore',document.querySelectorAll('.nav button')[1])});
+ }catch(e){popup('NOW AI','AI is temporarily unavailable. Your request has not been lost.')}
 }
 function deal(name,price){
  popup(name,'Available now · '+price+' · Payment protected by NOW.');
