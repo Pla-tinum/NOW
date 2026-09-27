@@ -53,20 +53,13 @@ function distanceText(opportunity) {
   const rad = Math.PI / 180;
   const a = Math.sin((opportunity.lat-lat)*rad/2)**2 + Math.cos(lat*rad)*Math.cos(opportunity.lat*rad)*Math.sin((opportunity.lng-lng)*rad/2)**2;
   const km = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1-a)));
-  return `${km.toFixed(1)} km ${userPosition ? 'from you' : 'from Solheimsviken'}`;
+  return `${km.toFixed(1)} km`;
 }
-function openOpportunity(opportunity) {
-  popup(opportunity.title,
-    `${opportunity.category} · ${opportunity.area} · ${distanceText(opportunity)} · ${opportunity.price}. ${opportunity.description} Demo listing.`,
-    categories[opportunity.category][2], () => {
-      closeSheet();
-      openCreate(`I'm interested in “${opportunity.title}” in ${opportunity.area}.`);
-    });
-}
+function openOpportunity(opportunity) { if(typeof openListingDetail==='function') openListingDetail(opportunity); }
 function renderOpportunities() {
   if (opportunityLayer) opportunityLayer.clearLayers();
   const visible = opportunities.filter(item => selectedCategory === 'All' || item.category === selectedCategory);
-  document.getElementById('opportunityCount').textContent = `⚡ ${visible.length} ${selectedCategory === 'All' ? '' : selectedCategory + ' '}demo opportunities in Bergen`;
+  document.getElementById('opportunityCount').textContent = `⚡ ${visible.length} ${typeof uiText==='function'?uiText('nearby opportunities','предложений рядом'):'nearby opportunities'}`;
   const list = document.getElementById('opportunityList');
   list.replaceChildren();
   visible.forEach(item => {
