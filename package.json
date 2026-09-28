@@ -2,8 +2,10 @@
   "name": "now-app",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "npm@10.8.2",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test tests/release.cjs"
   },
   "engines": {
     "node": ">=18"
