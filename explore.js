@@ -1,5 +1,5 @@
 /* Demo data only: no listings or location coordinates are sent to NOW. */
-const DEFAULT_MAP_CENTER = [60.3774, 5.3301];
+const DEFAULT_MAP_CENTER = [20, 0];
 const categories = {
   Earn: ['💰', '#7944e5', 'Ask about this gig'],
   Help: ['🤝', '#147955', 'Offer to help'],
@@ -7,19 +7,8 @@ const categories = {
   Rides: ['🚗', '#286dc2', 'Ask about this ride'],
   Marketplace: ['🛍', '#956018', 'Ask about this item']
 };
-const DEMO_OPPORTUNITIES = [
-  ['Earn', 'Evening delivery gig', 60.3901, 5.325, 'Bergen sentrum', '600 NOK', 'Two hours of local bicycle deliveries. Bring your own bike.'],
-  ['Earn', 'Furniture assembly', 60.3738, 5.338, 'Kronstad', '700 NOK', 'Help assemble a desk and bookshelf. Tools provided.'],
-  ['Help', 'Need help moving a sofa', 60.3781, 5.329, 'Solheimsviken', '450 NOK', 'Two people needed for a sofa move at 18:00. One flight of stairs.'],
-  ['Help', 'Help with groceries', 60.3825, 5.3195, 'Møhlenpris', '150 NOK', 'Pick up a small grocery order and deliver it nearby.'],
-  ['People', 'Football tonight', 60.3705, 5.347, 'Krohnsminde', 'Free · 5 places', 'Friendly football at 20:00. All skill levels welcome.'],
-  ['People', 'Coffee and a language exchange', 60.388, 5.332, 'Nygård', 'Free to join', 'Practice Norwegian and English over coffee. Buy your own drink.'],
-  ['Rides', 'Bergen → Voss tomorrow', 60.3894, 5.338, 'Bergen bus station', '150 NOK / seat', 'Leaving at 09:00. Two seats available, with room for a small bag.'],
-  ['Rides', 'Share a ride to Flesland', 60.3755, 5.325, 'Danmarks plass', '90 NOK / seat', 'Airport ride at 07:00 tomorrow. One seat and space for luggage.'],
-  ['Marketplace', 'City bike looking for a new owner', 60.3851, 5.325, 'Nygårdsparken', '1,200 NOK', 'Used adult city bike with lights and lock. Inspect on collection.'],
-  ['Marketplace', 'Small oak coffee table', 60.3802, 5.3365, 'Florida', '350 NOK', 'Good condition, 80 × 50 cm. Local pickup by arrangement.']
-].map(([category, title, lat, lng, area, price, description]) => ({category, title, lat, lng, area, price, description}));
-let opportunities = DEMO_OPPORTUNITIES;
+const DEMOlet opportunities = [];
+window.NOW_OPPORTUNITIES = opportunities;
 window.NOW_OPPORTUNITIES = opportunities;
 let exploreMap, opportunityLayer, userMarker, accuracyCircle, userPosition;
 let selectedCategory = 'All';
@@ -30,7 +19,7 @@ function initExplore() {
     renderOpportunities();
     return;
   }
-  exploreMap = L.map('map', {scrollWheelZoom: false}).setView(DEFAULT_MAP_CENTER, 12);
+  exploreMap = L.map('map', {scrollWheelZoom: false}).setView(DEFAULT_MAP_CENTER, 2);
   // Safari's address bar and orientation can resize the map without navigation.
   if (window.ResizeObserver) new ResizeObserver(() => {
     if (document.getElementById('map').clientWidth) exploreMap.invalidateSize({pan:false});
@@ -66,7 +55,7 @@ function renderOpportunities() {
   const list = document.getElementById('opportunityList');
   list.replaceChildren();
   visible.forEach(item => {
-    const [symbol, color] = categories[item.category];
+    const [symbol, color] = categories[item.category]||['•','#7944e5',uiText('View','Открыть')];
     if (opportunityLayer) {
       const icon = L.divIcon({className: 'now-marker', html: `<span class="marker-pin" style="--marker-color:${color}" aria-hidden="true">${symbol}</span>`, iconSize:[44,44], iconAnchor:[22,44]});
       L.marker([item.lat,item.lng], {icon, title: `${item.category}: ${item.title}`, alt: `${item.category}: ${item.title}`, riseOnHover:true})
@@ -96,7 +85,7 @@ document.querySelectorAll('[data-category]').forEach(button => {
     renderOpportunities();
   });
 });
-function showBergen(){if(exploreMap)exploreMap.stop().setView(DEFAULT_MAP_CENTER,12,{animate:false,reset:true});loadExploreOpportunities()}
+function resetExploreMap(){if(exploreMap)exploreMap.stop().setView(DEFAULT_MAP_CENTER,2,{animate:false,reset:true});loadExploreOpportunities()}
 function locateUser() {
   const status = document.getElementById('locationStatus');
   const button = document.getElementById('locate');
