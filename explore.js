@@ -1,5 +1,5 @@
 /* Demo data only: no listings or location coordinates are sent to NOW. */
-const BERGEN = [60.3774, 5.3301];
+const DEFAULT_MAP_CENTER = [60.3774, 5.3301];
 const categories = {
   Earn: ['💰', '#7944e5', 'Ask about this gig'],
   Help: ['🤝', '#147955', 'Offer to help'],
@@ -30,7 +30,7 @@ function initExplore() {
     renderOpportunities();
     return;
   }
-  exploreMap = L.map('map', {scrollWheelZoom: false}).setView(BERGEN, 12);
+  exploreMap = L.map('map', {scrollWheelZoom: false}).setView(DEFAULT_MAP_CENTER, 12);
   // Safari's address bar and orientation can resize the map without navigation.
   if (window.ResizeObserver) new ResizeObserver(() => {
     if (document.getElementById('map').clientWidth) exploreMap.invalidateSize({pan:false});
@@ -49,7 +49,7 @@ function initExplore() {
   opportunityLayer = L.layerGroup().addTo(exploreMap);
   loadExploreOpportunities();
 }
-function distanceKm(opportunity){const [lat,lng]=userPosition||BERGEN,rad=Math.PI/180,a=Math.sin((opportunity.lat-lat)*rad/2)**2+Math.cos(lat*rad)*Math.cos(opportunity.lat*rad)*Math.sin((opportunity.lng-lng)*rad/2)**2;return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)))}
+function distanceKm(opportunity){const [lat,lng]=userPosition||DEFAULT_MAP_CENTER,rad=Math.PI/180,a=Math.sin((opportunity.lat-lat)*rad/2)**2+Math.cos(lat*rad)*Math.cos(opportunity.lat*rad)*Math.sin((opportunity.lng-lng)*rad/2)**2;return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)))}
 function distanceText(opportunity) {
   const [lat, lng] = userPosition || BERGEN;
   const rad = Math.PI / 180;
@@ -58,11 +58,11 @@ function distanceText(opportunity) {
   return `${km.toFixed(1)} km`;
 }
 function openOpportunity(opportunity) { if(typeof openListingDetail==='function') openListingDetail(opportunity); }
-async function loadExploreOpportunities(){try{const p=userPosition||BERGEN,country=(localStorage.getItem('nowCountry')||'NO').toUpperCase(),qs=new URLSearchParams({country,category:selectedCategory,q:'',lat:p[0],lng:p[1]});const r=await fetch('/api/search?'+qs);if(!r.ok)throw new Error('search');const d=await r.json(),live=(d.listings||[]).filter(x=>Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))).map(x=>({...x,lat:Number(x.latitude),lng:Number(x.longitude),area:x.location||'',description:x.description||''}));opportunities=live.length?live:(userPosition?[]:DEMO_OPPORTUNITIES);window.NOW_OPPORTUNITIES=opportunities}catch(e){opportunities=userPosition?[]:DEMO_OPPORTUNITIES}renderOpportunities()}
+async function loadExploreOpportunities(){try{const p=userPosition||DEFAULT_MAP_CENTER,country=(localStorage.getItem('nowCountry')||'NO').toUpperCase(),qs=new URLSearchParams({country,category:selectedCategory,q:'',lat:p[0],lng:p[1]});const r=await fetch('/api/search?'+qs);if(!r.ok)throw new Error('search');const d=await r.json(),live=(d.listings||[]).filter(x=>Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))).map(x=>({...x,lat:Number(x.latitude),lng:Number(x.longitude),area:x.location||'',description:x.description||''}));opportunities=live;window.NOW_OPPORTUNITIES=opportunities}catch(e){opportunities=[]}renderOpportunities()}
 function renderOpportunities() {
   if (opportunityLayer) opportunityLayer.clearLayers();
   const visible = opportunities.filter(item => selectedCategory === 'All' || item.category === selectedCategory).filter(item=>{const d=distanceKm(item);return !Number.isFinite(d)||d<=100;});
-  document.getElementById('opportunityCount').textContent = `⚡ ${visible.length} ${typeof uiText==='function'?uiText('nearby opportunities','предложений рядом'):'nearby opportunities'}`;
+  document.getElementById('opportunityCount').textContent = `⚡ ${visible.length} ${typeof uiText==='function'?uiText('opportunities','предложений'):'opportunities'}`;
   const list = document.getElementById('opportunityList');
   list.replaceChildren();
   visible.forEach(item => {
@@ -96,9 +96,7 @@ document.querySelectorAll('[data-category]').forEach(button => {
     renderOpportunities();
   });
 });
-function showBergen() {
-  if (exploreMap) exploreMap.stop().setView(BERGEN, 12, {animate:false, reset:true});
-}
+function showBergen(){if(exploreMap)exploreMap.stop().setView(DEFAULT_MAP_CENTER,12,{animate:false,reset:true});loadExploreOpportunities()}
 function locateUser() {
   const status = document.getElementById('locationStatus');
   const button = document.getElementById('locate');
@@ -107,8 +105,7 @@ function locateUser() {
     userPosition = null;
     if (userMarker) { userMarker.remove(); userMarker = null; }
     if (accuracyCircle) { accuracyCircle.remove(); accuracyCircle = null; }
-    status.textContent = message+' '+uiText('Showing Bergen instead.','Показываем Берген.');
-    showBergen();
+    status.textContent = message+' '+uiText('You can still browse available listings.','Вы всё равно можете просматривать доступные предложения.');
     renderOpportunities();
   };
   if (!navigator.geolocation || !window.isSecureContext) {
