@@ -7,7 +7,7 @@ const categories = {
   Rides: ['🚗', '#286dc2', 'Ask about this ride'],
   Marketplace: ['🛍', '#956018', 'Ask about this item']
 };
-const opportunities = [
+const DEMO_OPPORTUNITIES = [
   ['Earn', 'Evening delivery gig', 60.3901, 5.325, 'Bergen sentrum', '600 NOK', 'Two hours of local bicycle deliveries. Bring your own bike.'],
   ['Earn', 'Furniture assembly', 60.3738, 5.338, 'Kronstad', '700 NOK', 'Help assemble a desk and bookshelf. Tools provided.'],
   ['Help', 'Need help moving a sofa', 60.3781, 5.329, 'Solheimsviken', '450 NOK', 'Two people needed for a sofa move at 18:00. One flight of stairs.'],
@@ -19,6 +19,7 @@ const opportunities = [
   ['Marketplace', 'City bike looking for a new owner', 60.3851, 5.325, 'Nygårdsparken', '1,200 NOK', 'Used adult city bike with lights and lock. Inspect on collection.'],
   ['Marketplace', 'Small oak coffee table', 60.3802, 5.3365, 'Florida', '350 NOK', 'Good condition, 80 × 50 cm. Local pickup by arrangement.']
 ].map(([category, title, lat, lng, area, price, description]) => ({category, title, lat, lng, area, price, description}));
+let opportunities = DEMO_OPPORTUNITIES;
 window.NOW_OPPORTUNITIES = opportunities;
 let exploreMap, opportunityLayer, userMarker, accuracyCircle, userPosition;
 let selectedCategory = 'All';
@@ -46,7 +47,7 @@ function initExplore() {
     if (!failed) document.getElementById('mapStatus').textContent = '';
   });
   opportunityLayer = L.layerGroup().addTo(exploreMap);
-  renderOpportunities();
+  loadExploreOpportunities();
 }
 function distanceText(opportunity) {
   const [lat, lng] = userPosition || BERGEN;
@@ -56,6 +57,7 @@ function distanceText(opportunity) {
   return `${km.toFixed(1)} km`;
 }
 function openOpportunity(opportunity) { if(typeof openListingDetail==='function') openListingDetail(opportunity); }
+async function loadExploreOpportunities(){try{const p=userPosition||BERGEN,country=(localStorage.getItem('nowCountry')||'NO').toUpperCase(),qs=new URLSearchParams({country,category:selectedCategory,q:'',lat:p[0],lng:p[1]});const r=await fetch('/api/search?'+qs);if(!r.ok)throw new Error('search');const d=await r.json(),live=(d.listings||[]).filter(x=>Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))).map(x=>({...x,lat:Number(x.latitude),lng:Number(x.longitude),area:x.location||'',description:x.description||''}));opportunities=live.length?live:DEMO_OPPORTUNITIES;window.NOW_OPPORTUNITIES=opportunities}catch(e){opportunities=DEMO_OPPORTUNITIES}renderOpportunities()}
 function renderOpportunities() {
   if (opportunityLayer) opportunityLayer.clearLayers();
   const visible = opportunities.filter(item => selectedCategory === 'All' || item.category === selectedCategory);
@@ -126,7 +128,7 @@ function locateUser() {
       userMarker = L.marker(userPosition, {icon:L.divIcon({className:'user-dot',iconSize:[20,20]}), title:uiText('Your location','Ваше местоположение'), alt:uiText('Your location','Ваше местоположение'), zIndexOffset:1000}).addTo(exploreMap);
       exploreMap.stop().setView(userPosition, 14, {animate:false, reset:true});
     }
-    renderOpportunities();
+    loadExploreOpportunities();
   }, error => fallback(error.code === 1 ? uiText('Location permission denied.','Доступ к геолокации запрещён.') : error.code === 3 ? uiText('Location request timed out.','Время определения местоположения истекло.') : uiText('Could not determine your location.','Не удалось определить местоположение.')),
   {enableHighAccuracy:true, timeout:10000, maximumAge:60000});
 }
