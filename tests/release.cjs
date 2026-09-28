@@ -49,3 +49,11 @@ test('unauthenticated account access and deletion are rejected', async () => {
   });
   assert.equal(response.status, 401);
 });
+
+test('Norway job search excludes Germany-only Arbeitnow listings', async () => {
+  const response = await get('/api/search?country=NO&category=Earn');
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.ok(Array.isArray(body.listings));
+  assert.equal(body.listings.filter(item => item.source === 'Arbeitnow').length, 0);
+});
