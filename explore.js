@@ -49,6 +49,7 @@ function initExplore() {
   opportunityLayer = L.layerGroup().addTo(exploreMap);
   loadExploreOpportunities();
 }
+function distanceKm(opportunity){const [lat,lng]=userPosition||BERGEN,rad=Math.PI/180,a=Math.sin((opportunity.lat-lat)*rad/2)**2+Math.cos(lat*rad)*Math.cos(opportunity.lat*rad)*Math.sin((opportunity.lng-lng)*rad/2)**2;return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)))}
 function distanceText(opportunity) {
   const [lat, lng] = userPosition || BERGEN;
   const rad = Math.PI / 180;
@@ -57,10 +58,10 @@ function distanceText(opportunity) {
   return `${km.toFixed(1)} km`;
 }
 function openOpportunity(opportunity) { if(typeof openListingDetail==='function') openListingDetail(opportunity); }
-async function loadExploreOpportunities(){try{const p=userPosition||BERGEN,country=(localStorage.getItem('nowCountry')||'NO').toUpperCase(),qs=new URLSearchParams({country,category:selectedCategory,q:'',lat:p[0],lng:p[1]});const r=await fetch('/api/search?'+qs);if(!r.ok)throw new Error('search');const d=await r.json(),live=(d.listings||[]).filter(x=>Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))).map(x=>({...x,lat:Number(x.latitude),lng:Number(x.longitude),area:x.location||'',description:x.description||''}));opportunities=live.length?live:DEMO_OPPORTUNITIES;window.NOW_OPPORTUNITIES=opportunities}catch(e){opportunities=DEMO_OPPORTUNITIES}renderOpportunities()}
+async function loadExploreOpportunities(){try{const p=userPosition||BERGEN,country=(localStorage.getItem('nowCountry')||'NO').toUpperCase(),qs=new URLSearchParams({country,category:selectedCategory,q:'',lat:p[0],lng:p[1]});const r=await fetch('/api/search?'+qs);if(!r.ok)throw new Error('search');const d=await r.json(),live=(d.listings||[]).filter(x=>Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude))).map(x=>({...x,lat:Number(x.latitude),lng:Number(x.longitude),area:x.location||'',description:x.description||''}));opportunities=live.length?live:(userPosition?[]:DEMO_OPPORTUNITIES);window.NOW_OPPORTUNITIES=opportunities}catch(e){opportunities=DEMO_OPPORTUNITIES}renderOpportunities()}
 function renderOpportunities() {
   if (opportunityLayer) opportunityLayer.clearLayers();
-  const visible = opportunities.filter(item => selectedCategory === 'All' || item.category === selectedCategory);
+  const visible = opportunities.filter(item => selectedCategory === 'All' || item.category === selectedCategory).filter(item=>distanceKm(item)<=100);
   document.getElementById('opportunityCount').textContent = `⚡ ${visible.length} ${typeof uiText==='function'?uiText('nearby opportunities','предложений рядом'):'nearby opportunities'}`;
   const list = document.getElementById('opportunityList');
   list.replaceChildren();
