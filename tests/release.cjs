@@ -32,11 +32,14 @@ test('public data and release configuration have expected shapes', async () => {
 });
 
 test('legal pages respond and private files stay private', async () => {
-  for (const path of ['/privacy', '/terms']) {
+  for (const path of ['/privacy', '/terms', '/support', '/delete-account']) {
     const response = await get(path);
     assert.equal(response.status, 200, path);
     assert.match(response.headers.get('content-type'), /text\/html/);
   }
+  const privacy = await (await get('/privacy')).text();
+  assert.match(privacy, /aloe\.vera225@yahoo\.com/);
+  assert.doesNotMatch(privacy, /will be finalized before public store submission|pre-release version/);
   for (const path of ['/server.js', '/package.json', '/.env']) {
     assert.equal((await get(path)).status, 404, path);
   }

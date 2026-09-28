@@ -13,6 +13,7 @@ NOW connects real-world needs and opportunities: Earn, Help, People, Rides, Mark
 - AdMob stays in test mode until production unit IDs and store apps are ready.
 - Privacy: `/privacy`
 - Terms: `/terms`
+- Public support: `/support` and deletion instructions: `/delete-account`
 - Account deletion: available in YOU and backed by `DELETE /api/me/account`
 - Health: `/health`
 - Native configuration: `/app-config`
@@ -21,12 +22,18 @@ NOW connects real-world needs and opportunities: Earn, Help, People, Rides, Mark
 
 Google Play and Apple products must use the IDs above. Native shells should expose `window.NowNativeBilling.purchase(product)` and `window.NowNativeBilling.restore()` to the web layer, then verify store transactions server-side before granting entitlements. Do not enable `STORE_BILLING_ENABLED` until verification is implemented and tested.
 
+The repository currently contains a web application, not signed Android/iOS projects or a store billing backend. Store releases with Plus, Business and Boost require native projects, store credentials, server-side purchase verification, lifecycle handling for renewals/cancellations/refunds and sandbox tests. The price on the plan screen is an indicative NOK price; the store's localized price is authoritative. Do not submit the current web application as a complete paid mobile app.
+
+Set `NOW_LEGAL_NAME` to the publisher's verified full legal name before submission and review the text in `legal.js` against the actual data flows and retention settings. Public contact is `aloe.vera225@yahoo.com`. Store metadata can link to `/privacy`, `/support` and `/delete-account` without a separate domain.
+
 For ads, keep `ADS_TEST_MODE=true` during development. Production requires the AdMob app/unit IDs in Railway and store-compliant consent/privacy handling before `ADS_ENABLED=true`.
 
 ## Local run
 
 `npm ci`
 `npm start`
+`npm test` (public smoke checks with `TEST_URL` pointing to a running service)
+`npm run test:e2e` (creates and then deletes two disposable accounts; use only on an authorized test or production environment)
 
 Node.js 18+ is required. Explore uses locally served Leaflet 1.9 and OpenStreetMap tiles. Location is requested only through user action/settings and can be disabled.
 

@@ -5,7 +5,8 @@
   "packageManager": "npm@10.8.2",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test tests/release.cjs"
+    "test": "node --test tests/release.cjs",
+    "test:e2e": "node --test tests/e2e.cjs"
   },
   "engines": {
     "node": ">=18"
