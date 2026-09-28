@@ -1,4 +1,3 @@
-/* Demo data only: no listings or location coordinates are sent to NOW. */
 const DEFAULT_MAP_CENTER = [20, 0];
 const categories = {
   Earn: ['💰', '#7944e5', 'Ask about this gig'],
@@ -7,8 +6,7 @@ const categories = {
   Rides: ['🚗', '#286dc2', 'Ask about this ride'],
   Marketplace: ['🛍', '#956018', 'Ask about this item']
 };
-const DEMOlet opportunities = [];
-window.NOW_OPPORTUNITIES = opportunities;
+let opportunities = [];
 window.NOW_OPPORTUNITIES = opportunities;
 let exploreMap, opportunityLayer, userMarker, accuracyCircle, userPosition;
 let selectedCategory = 'All';
@@ -40,7 +38,7 @@ function initExplore() {
 }
 function distanceKm(opportunity){const [lat,lng]=userPosition||DEFAULT_MAP_CENTER,rad=Math.PI/180,a=Math.sin((opportunity.lat-lat)*rad/2)**2+Math.cos(lat*rad)*Math.cos(opportunity.lat*rad)*Math.sin((opportunity.lng-lng)*rad/2)**2;return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)))}
 function distanceText(opportunity) {
-  const [lat, lng] = userPosition || BERGEN;
+  const [lat, lng] = userPosition || DEFAULT_MAP_CENTER;
   const rad = Math.PI / 180;
   const a = Math.sin((opportunity.lat-lat)*rad/2)**2 + Math.cos(lat*rad)*Math.cos(opportunity.lat*rad)*Math.sin((opportunity.lng-lng)*rad/2)**2;
   const km = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1-a)));
