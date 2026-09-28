@@ -149,7 +149,8 @@ async function searchPublicMarketplace(q,country){const out=[];if(country==="SE"
     }
     res.writeHead(200, {
       "Content-Type": route[1],
-      "Cache-Control": "no-cache",
+      "Cache-Control": "no-store, max-age=0",
+      "Pragma": "no-cache",
       "X-Content-Type-Options": "nosniff"
     });
     res.end(req.method === "HEAD" ? undefined : data);
