@@ -315,6 +315,9 @@ function deal(name,price){popup(name,uiText('Available now','Доступно с
 window.NOW_ADS={enabled:false,provider:'admob',testMode:true,placements:{}};
 (async()=>{try{const r=await fetch('/api/ads/config');if(r.ok)window.NOW_ADS=await r.json()}catch(e){}})();
 window.nowAdsAllowed=()=>window.NOW_ADS.enabled&&!document.documentElement.dataset.adsDisabled;
+window.NOW_AD_RUNTIME={actions:0,lastInterstitial:0};
+window.nowAdAction=()=>{const a=window.NOW_AD_RUNTIME,c=window.NOW_ADS||{},r=c.rules||{};a.actions++;const now=Date.now(),ready=a.actions>=(r.interstitialMinActions||4)&&now-a.lastInterstitial>=(r.interstitialCooldownSeconds||300)*1000;if(ready){a.actions=0;a.lastInterstitial=now;window.dispatchEvent(new CustomEvent('now:ad:interstitial'))}return ready};
+window.nowRewardedBoost=()=>window.dispatchEvent(new CustomEvent('now:ad:rewarded',{detail:{reward:'listing_boost',hours:(window.NOW_ADS.rules||{}).rewardedBoostHours||24}}));
 </script>
 </body>
 </html>
