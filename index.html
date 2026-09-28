@@ -134,8 +134,8 @@ button:focus-visible,a:focus-visible{outline:3px solid #c9b4ff;outline-offset:3p
 <section id="create" class="page">
 <div class="head" data-i18n="create">Create</div>
 <p class="sub" data-i18n="createHint">Tell NOW naturally. AI will understand it and structure the action.</p>
-<textarea id="createText" placeholder="Example: I need someone with a van to move a sofa tonight for 500 NOK"></textarea>
-<button class="bigbtn" onclick="publish()" data-i18n="findMatches">Find matches now</button>
+<textarea id="createText" maxlength="4000" placeholder="Example: I need someone with a van to move a sofa tonight for 500 NOK" oninput="updateCreateCount()"></textarea><div class="meta" id="createCount" style="text-align:right;margin-top:6px">0 / 4000</div>
+<button class="bigbtn" id="publishBtn" onclick="publish()" data-i18n="findMatches">Find matches now</button>
 <button class="bigbtn secondary" onclick="openCreate('I offer')" data-i18n="offer">I OFFER SOMETHING</button>
 <button class="bigbtn secondary" onclick="instantSearch('People')" data-i18n="meetPeople">MEET PEOPLE</button>
 </section>
@@ -266,10 +266,10 @@ function openListingDetail(x){lastBrowsePage=document.querySelector('.page.activ
 async function favoriteListing(id,button){if(!localStorage.getItem('nowToken')){popup('NOW',uiText('Sign in to save listings.','Войдите, чтобы сохранять объявления.'),uiText('Close','Закрыть'),closeSheet);return}try{await accountRequest('/api/favorites',{listing_id:id});button.textContent='♥ '+uiText('Saved','Сохранено');button.disabled=true}catch(e){popup('NOW',uiText('Could not save this listing.','Не удалось сохранить объявление.'),'OK',closeSheet)}}
 async function reportListing(id){if(!localStorage.getItem('nowToken')){popup('NOW',uiText('Sign in to report a listing.','Войдите, чтобы пожаловаться.'),'OK',closeSheet);return}const reason=prompt(uiText('What is wrong with this listing?','Что не так с этим объявлением?'),'');if(!reason)return;try{await accountRequest('/api/reports',{listing_id:id,reason});popup('NOW',uiText('Report sent for review.','Жалоба отправлена на проверку.'),'OK',closeSheet)}catch(e){popup('NOW',uiText('Could not send report.','Не удалось отправить жалобу.'),'OK',closeSheet)}}
 async function instantSearch(category){currentResultMode='';document.getElementById('categorySearch').value='';document.querySelectorAll('#radiusFilters .filter').forEach(x=>x.classList.toggle('active',Number(x.textContent.replace(/\D/g,''))===NOW_SEARCH_RADIUS));await showResults(category,'')}
-function openCreate(text){
+function updateCreateCount(){const e=document.getElementById('createText'),c=document.getElementById('createCount');if(e&&c)c.textContent=e.value.length+' / 4000'}
+function openCreate(text=''){
  go('create',document.querySelectorAll('.nav button')[2]);
- document.getElementById('createText').value=text+' ';
- document.getElementById('createText').focus();
+ const e=document.getElementById('createText');if(text&&!e.value)e.value=text+' ';updateCreateCount();e.focus();
 }
 let sheetReturnFocus;
 function popup(title,text,actionLabel='Continue',action=closeSheet){
@@ -309,13 +309,13 @@ async function matchNeed(){
 function deviceId(){let id;try{id=localStorage.getItem('nowDeviceId');if(!id){id=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random());localStorage.setItem('nowDeviceId',id)}}catch(e){id='web-'+Date.now()}return id}
 async function saveListing(v,r){const response=await fetch('/api/listings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(localStorage.getItem('nowToken')||'')},body:JSON.stringify({deviceId:deviceId(),language:window.NOW_LANGUAGE||'en',kind:r.intent||'need',title:r.title||v.slice(0,100),description:v,category:r.category||'Other',location:r.location||'',price:r.budget||'',country:(localStorage.getItem('nowCountry')||'NO').toUpperCase(),latitude:r.latitude,longitude:r.longitude})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Save failed');return data.listing}
 async function publish(){
- let v=document.getElementById('createText').value.trim(); if(!v){popup('NOW',uiText('Write your request first.','Сначала напишите запрос.'),uiText('Close','Закрыть'),closeSheet);return}
- popup('NOW AI',uiText('Structuring your request…','Разбираем ваш запрос…'));
+ let v=document.getElementById('createText').value.trim(); const publishBtn=document.getElementById('publishBtn');if(!v){popup('NOW',uiText('Write your request first.','Сначала напишите запрос.'),uiText('Close','Закрыть'),closeSheet);return}
+ if(publishBtn){publishBtn.disabled=true;publishBtn.textContent=uiText('Preparing…','Подготавливаем…')} popup('NOW AI',uiText('Structuring your request…','Разбираем ваш запрос…'));
  try{
   const r=await nowAI(v); const details=[r.category,r.time,r.budget,r.location].filter(Boolean).join(' · ');
   const confirmText=(r.title||v.slice(0,100))+(details?'\n\n'+details:'')+'\n\n'+uiText('Publish this listing?','Опубликовать это объявление?');
   popup(uiText('Check before publishing','Проверьте перед публикацией'),confirmText,uiText('Publish','Опубликовать'),async()=>{try{const pos=await getPositionFast();r.latitude=pos&&pos.lat;r.longitude=pos&&pos.lng;const listing=await saveListing(v,r);try{localStorage.setItem('nowLastRequest',JSON.stringify({text:v,ai:r,listing}))}catch(error){}popup(uiText('Published','Опубликовано'),uiText('Your listing is live in NOW.','Ваше объявление опубликовано в NOW.'),uiText('View results','Смотреть результаты'),()=>{closeSheet();showResults(r.category||'All',v)})}catch(e){popup('NOW',uiText('Could not publish. Please try again.','Не удалось опубликовать. Попробуйте ещё раз.'),'OK',closeSheet)}});
- }catch(e){popup('NOW AI',uiText('AI is temporarily unavailable. Your text is still here.','AI временно недоступен. Ваш текст сохранён в форме.'),'OK',closeSheet)}
+ }catch(e){popup('NOW AI',uiText('AI is temporarily unavailable. Your text is still here.','AI временно недоступен. Ваш текст сохранён в форме.'),'OK',closeSheet)}finally{if(publishBtn){publishBtn.disabled=false;publishBtn.textContent=uiText('Find matches now','Найти совпадения')}}
 }
 function deal(name,price){popup(name,uiText('Available now','Доступно сейчас')+' · '+price+' · '+uiText('Arrange details in NOW chat.','Согласуйте детали в чате NOW.'));}
 </script>
