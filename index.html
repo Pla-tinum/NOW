@@ -226,7 +226,7 @@ function go(id,b){
  window.scrollTo(0,0);
  if(id==='explore')requestAnimationFrame(initExplore);if(id==='you')loadAccount();if(id==='chat')loadChats();
 }
-function uiText(en,ru){const lang=window.NOW_LANGUAGE||'en';if(lang==='ru')return ru;return en}
+function uiText(en,ru){const lang=window.NOW_LANGUAGE||'en';if(lang==='ru')return ru;const dict={no:{'Back':'Tilbake','Send':'Send','Cancel':'Avbryt','Chat':'Chat','Pause':'Sett på pause','Activate':'Aktiver','Complete':'Fullfør','Accept':'Godta','Confirm':'Bekreft','Start work':'Start arbeid','Leave a review':'Legg igjen vurdering','Boost active':'Boost aktiv','Your work will appear here.':'Arbeidet ditt vises her.','No saved listings yet.':'Ingen lagrede annonser ennå.','History is empty.':'Historikken er tom.','You have no listings yet.':'Du har ingen annonser ennå.','Could not load chats.':'Kunne ikke laste chatter.','Write a message…':'Skriv en melding…','Sign in to see your conversations.':'Logg inn for å se samtalene dine.','Store billing is not connected yet. Your account will not be charged.':'Butikkbetaling er ikke koblet til ennå. Kontoen din blir ikke belastet.'},uk:{'Back':'Назад','Send':'Надіслати','Cancel':'Скасувати','Chat':'Чат','Pause':'Призупинити','Activate':'Активувати','Complete':'Завершити','Accept':'Прийняти','Confirm':'Підтвердити','Start work':'Почати роботу','Leave a review':'Залишити відгук','Boost active':'Boost активний','Write a message…':'Написати повідомлення…'}};return dict[lang]&&dict[lang][en]||en}
 function getPositionFast(){
  return new Promise(resolve=>{
   if(!navigator.geolocation||!window.isSecureContext)return resolve(null);
