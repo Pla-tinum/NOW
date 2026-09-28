@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test tests/release.cjs",
-    "test:e2e": "node --test tests/e2e.cjs"
+    "test:e2e": "node --test tests/e2e.cjs",
+    "test:moderation": "node --test tests/moderation.cjs",
+    "test:admin": "node --test tests/admin.cjs"
   },
   "engines": {
     "node": ">=18"

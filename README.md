@@ -38,6 +38,8 @@ For ads, keep `ADS_TEST_MODE=true` during development. Production requires the A
 `npm start`
 `npm test` (public smoke checks with `TEST_URL` pointing to a running service)
 `npm run test:e2e` (creates and then deletes two disposable accounts; use only on an authorized test or production environment)
+`npm run test:moderation` (checks public content and report protection)
+`MOD_TOKEN=... npm run test:admin` (checks report review and irreversible moderator hide; fetch the token privately from Railway)
 
 Node.js 18+ is required. Explore uses locally served Leaflet 1.9 and OpenStreetMap tiles. Location is requested only through user action/settings and can be disabled.
 
