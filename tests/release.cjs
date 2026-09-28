@@ -56,4 +56,7 @@ test('Norway job search excludes Germany-only Arbeitnow listings', async () => {
   const body = await response.json();
   assert.ok(Array.isArray(body.listings));
   assert.equal(body.listings.filter(item => item.source === 'Arbeitnow').length, 0);
+  for (const item of body.listings.filter(item => item.source === 'Jobicy')) {
+    assert.match(String(item.location).toLowerCase(), /norway|norge|europe|emea|anywhere|worldwide|global/);
+  }
 });
