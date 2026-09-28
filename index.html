@@ -314,12 +314,13 @@ function deal(name,price){popup(name,uiText('Available now','Доступно с
 <script>
 window.NOW_ADS={enabled:false,provider:'admob',testMode:true,placements:{}};
 (async()=>{try{const r=await fetch('/api/ads/config');if(r.ok)window.NOW_ADS=await r.json()}catch(e){}})();
-window.nowAdsAllowed=()=>window.NOW_ADS.enabled&&!document.documentElement.dataset.adsDisabled;
+window.nowAdsAllowed=()=>window.NOW_ADS.enabled&&!document.documentElement.dataset.adsDisabled&&localStorage.getItem('nowPlan')!=='now_plus'&&localStorage.getItem('nowPlan')!=='now_business';
 window.NOW_AD_RUNTIME={actions:0,lastInterstitial:0};
 window.nowAdAction=()=>{const a=window.NOW_AD_RUNTIME,c=window.NOW_ADS||{},r=c.rules||{};a.actions++;const now=Date.now(),ready=a.actions>=(r.interstitialMinActions||4)&&now-a.lastInterstitial>=(r.interstitialCooldownSeconds||300)*1000;if(ready){a.actions=0;a.lastInterstitial=now;window.dispatchEvent(new CustomEvent('now:ad:interstitial'))}return ready};
 window.NOW_PLANS=null;
 window.loadNowPlans=async()=>{try{const country=(localStorage.getItem('nowCountry')||'NO').toUpperCase(),r=await fetch('/api/plans?country='+encodeURIComponent(country));if(r.ok)window.NOW_PLANS=await r.json()}catch(e){}return window.NOW_PLANS};
 window.loadNowPlans();
+window.syncNowPlan=async()=>{const token=localStorage.getItem('nowToken');if(!token)return localStorage.setItem('nowPlan','free');try{const r=await fetch('/api/me',{headers:{Authorization:'Bearer '+token}});if(r.ok){const d=await r.json(),p=d.user&&d.user.plan||'free';localStorage.setItem('nowPlan',p);document.documentElement.dataset.adsDisabled=(p==='now_plus'||p==='now_business')?'1':''}}catch(e){}};window.syncNowPlan();
 window.nowRewardedBoost=()=>window.dispatchEvent(new CustomEvent('now:ad:rewarded',{detail:{reward:'listing_boost',hours:(window.NOW_ADS.rules||{}).rewardedBoostHours||24}}));
 </script>
 </body>
