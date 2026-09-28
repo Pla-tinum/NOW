@@ -18,6 +18,10 @@ NOW connects real-world needs and opportunities: Earn, Help, People, Rides, Mark
 - Health: `/health`
 - Native configuration: `/app-config`
 
+## Content safety
+
+Public listings, profiles, community posts and reviews are checked using OpenAI Moderations. If the check is unavailable, new public content is rejected until it recovers. Reports are queued in PostgreSQL. Set a strong `NOW_MODERATOR_TOKEN` in Railway; an authorized operator can GET `/api/admin/reports` with `Authorization: Bearer <token>` and POST `/api/admin/reports/:id/resolve` with `{ "action": "hide" }` or `{ "action": "dismiss" }`. A human must review the queue and respond to reports.
+
 ## Required external release setup
 
 Google Play and Apple products must use the IDs above. Native shells should expose `window.NowNativeBilling.purchase(product)` and `window.NowNativeBilling.restore()` to the web layer, then verify store transactions server-side before granting entitlements. Do not enable `STORE_BILLING_ENABLED` until verification is implemented and tested.
