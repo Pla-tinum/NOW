@@ -311,5 +311,10 @@ async function publish(){
 }
 function deal(name,price){popup(name,uiText('Available now','Доступно сейчас')+' · '+price+' · '+uiText('Arrange details in NOW chat.','Согласуйте детали в чате NOW.'));}
 </script>
+<script>
+window.NOW_ADS={enabled:false,provider:'admob',testMode:true,placements:{}};
+(async()=>{try{const r=await fetch('/api/ads/config');if(r.ok)window.NOW_ADS=await r.json()}catch(e){}})();
+window.nowAdsAllowed=()=>window.NOW_ADS.enabled&&!document.documentElement.dataset.adsDisabled;
+</script>
 </body>
 </html>
