@@ -217,7 +217,8 @@ async function searchPublicMarketplace(q,country){const out=[];if(country==="SE"
     try{const id=Number(pathname.split('/')[3]),token=String(req.headers.authorization||'').replace(/^Bearer\s+/i,''),user=token?(await pool.query('SELECT id FROM users WHERE session_token=$1',[token])).rows[0]:null;
       const listing=(await pool.query("SELECT user_id FROM listings WHERE id=$1 AND status='active' AND (expires_at IS NULL OR expires_at>NOW())",[id])).rows[0];
       if(!listing){res.writeHead(404);return res.end()}if(user&&Number(user.id)===Number(listing.user_id)){res.writeHead(204);return res.end()}
-      const key=crypto.createHash('sha256').update([user?.id||'',req.socket.remoteAddress||'',req.headers['user-agent']||'',new Date().toISOString().slice(0,10)].join(':')).digest('hex');
+      const viewer=user ? ['user',user.id] : ['anonymous',req.socket.remoteAddress||'',req.headers['user-agent']||''];
+      const key=crypto.createHash('sha256').update(viewer.join(':')).digest('hex');
       const inserted=await pool.query('INSERT INTO listing_views(listing_id,viewer_hash) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING listing_id',[id,key]);
       if(inserted.rows.length)await pool.query('UPDATE listings SET view_count=view_count+1 WHERE id=$1',[id]);
       res.writeHead(204);return res.end();
