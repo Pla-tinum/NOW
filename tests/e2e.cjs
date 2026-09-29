@@ -33,6 +33,7 @@ test('two accounts: publish, apply, chat, deal, review, report, block, delete', 
     assert.equal(benefits.plan,'free'); assert.equal(benefits.limit,5); assert.equal(benefits.ads,true);
     assert.equal((await call('/api/me/business/analytics','GET',owner)).status,403);
     assert.equal((await call('/api/me/business','POST',owner,{company_name:'QA Ltd'})).status,403);
+    assert.equal((await call('/api/me/business/listings/bulk','POST',owner,{action:'pause'})).status,403);
     const firstView=await call('/api/listings/'+id+'/view','POST',worker);
     assert.equal(firstView.status,204);assert.equal((await call('/api/listings/'+id+'/view','POST',worker)).status,204);
     assert.equal((await call('/api/me','GET',owner)).data.listings.find(x=>x.id===id).view_count,1);
