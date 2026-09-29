@@ -7,7 +7,7 @@ NOW connects real-world needs and opportunities: Earn, Help, People, Rides, Mark
 ## Release baseline
 
 - App version: 1.0.0
-- Store products: `now_plus_monthly` (59 NOK/month), `now_business_monthly` (150 NOK/month), `listing_boost` (19 NOK one-time)
+- Store products: `now_plus_monthly` (59 NOK/month), `now_business_monthly` (130 NOK/month), `listing_boost` (19 NOK consumable)
 - Store billing is fail-closed until `STORE_BILLING_ENABLED=true`; the web app never simulates a successful paid purchase.
 - Ads are fail-closed until `ADS_ENABLED=true`. NOW Plus and NOW Business are configured as ad-free entitlements.
 - AdMob stays in test mode until production unit IDs and store apps are ready.

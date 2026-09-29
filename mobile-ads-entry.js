@@ -8,7 +8,8 @@ if (window.Capacitor?.isNativePlatform?.()) {
   async function refresh() {
     const config = window.NOW_ADS;
     const unit = window.NOW_AD_UNITS?.[platform];
-    const allowed = config?.enabled && unit && window.nowAdsAllowed?.();
+    const demoUnit = !!unit?.includes('3940256099942544');
+    const allowed = config?.enabled && unit && (!demoUnit || config.testMode) && window.nowAdsAllowed?.();
     if (!allowed) {
       if (shown) { await AdMob.removeBanner(); shown = false; document.documentElement.classList.remove('native-ad-visible'); }
       return;

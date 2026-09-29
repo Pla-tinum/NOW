@@ -21,7 +21,7 @@ NOW brings real-world opportunities into one place. Find nearby work, ask for he
 
 Explore the map or browse by category: Earn, Help, People, Rides, Marketplace and Share. Create a listing in your own words, respond to someone else's request and arrange the details in chat. You can report listings, block people and delete your account in the app.
 
-Optional NOW Plus gives your listings higher placement and removes ads. NOW Business adds a business badge, top placement for your listings and an ad-free experience. Boost is a one-time purchase that moves one listing higher for 72 hours. Final prices and subscription terms are shown by the App Store or Google Play before purchase.
+Free includes ads, five active listings, basic view counts and chats. NOW Plus is 59 NOK/month, removes ads, allows 20 active listings, adds a PLUS badge, enhanced listing statistics and one included Boost per paid month. NOW Business is 130 NOK/month, removes ads, allows 100 active listings, adds a business profile, full analytics, listing tools and three included Boosts per paid month. Plus and Business listings receive higher placement than Free within relevant results. Boost is a separate 19 NOK consumable purchase for one of your listings and raises it for 72 hours. Unused included Boosts do not roll over. Final localized prices and subscription terms are shown by the App Store or Google Play before purchase.
 
 NOW helps people connect. Users arrange their own agreements and payments directly; NOW does not employ users or process payments for their work.
 
@@ -35,11 +35,11 @@ Find nearby opportunities and connect with people in the moment.
 
 | Product ID | Store type | Display name | Description |
 |---|---|---|---|
-| `now_plus_monthly` | Monthly auto-renewing subscription | NOW Plus | Ad-free NOW and higher placement for your listings. |
-| `now_business_monthly` | Monthly auto-renewing subscription | NOW Business | Business badge, top listing placement and no ads. |
+| `now_plus_monthly` | Monthly auto-renewing subscription | NOW Plus | 20 active listings, one included Boost per paid month, ad-free, enhanced statistics and higher placement. Entitlement: `now_plus`. |
+| `now_business_monthly` | Monthly auto-renewing subscription | NOW Business | 100 active listings, three included Boosts per paid month, business profile and full analytics. Entitlement: `now_business`. |
 | `listing_boost` | Consumable in-app purchase | Listing Boost | Move one active listing higher for 72 hours. |
 
-Indicative Norwegian prices in the interface: 59 NOK/month, 150 NOK/month and 19 NOK once. Set actual localized prices in each store; verify the price shown in the app before submission.
+Norwegian prices approved for NOW 1.0: 59 NOK/month, 130 NOK/month and 19 NOK once. Set actual localized prices in each store; verify the price shown in the app before submission. Do not attach the consumable Boost to a permanent entitlement.
 
 ## Artwork
 
