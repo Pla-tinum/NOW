@@ -19,7 +19,14 @@ test('two accounts: publish, apply, chat, deal, review, report, block, delete', 
       const r=await call('/api/auth/register','POST',undefined,{name:'NOW QA '+label,email:`now-qa-${label}-${suffix}@example.invalid`,password});
       assert.equal(r.status,200,JSON.stringify(r.data)); tokens.push(r.data.token);
     }
-    const [owner,worker]=tokens; console.log('QA: registered');
+    const [initialOwner,worker]=tokens; console.log('QA: registered');
+    assert.equal((await call('/api/me','GET',initialOwner)).status,200);
+    const signedIn=await call('/api/auth/login','POST',undefined,{email:`now-qa-owner-${suffix}@example.invalid`,password});
+    assert.equal(signedIn.status,200,JSON.stringify(signedIn.data));
+    const owner=signedIn.data.token;
+    tokens[0]=owner;
+    assert.equal((await call('/api/me','GET',initialOwner)).status,401,'previous session must be invalidated');
+    assert.equal((await call('/api/me','GET',owner)).status,200,'repeat sign-in must restore the account');
     const created=await call('/api/listings','POST',owner,{title:'NOW QA '+suffix,description:'Disposable release QA listing',category:'Help',country:'NO',location:'Bergen',kind:'need'});
     assert.equal(created.status,201,JSON.stringify(created.data)); const id=created.data.listing.id; console.log('QA: listed');
     assert.equal((await call('/api/me/listings/'+id,'POST',owner,{status:'deleted'})).status,404);
@@ -36,6 +43,7 @@ test('two accounts: publish, apply, chat, deal, review, report, block, delete', 
     assert.equal((await call('/api/blocks','POST',worker,{user_id:created.data.listing.user_id})).status,201);
     assert.equal((await call('/api/me/account','DELETE',owner)).status,200);
     assert.equal((await call('/api/me','GET',owner)).status,401);
+    assert.equal((await call('/api/auth/login','POST',undefined,{email:`now-qa-owner-${suffix}@example.invalid`,password})).status,400,'deleted account cannot sign in');
     assert.ok(!(await call('/api/listings')).data.listings.some(x=>x.id===id));
     const msgs=await call(`/api/jobs/${job}/messages`,'GET',worker);
     assert.ok(msgs.data.messages.every(x=>x.text!=='QA hello'));

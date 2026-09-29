@@ -52,8 +52,9 @@ if (capacitor?.isNativePlatform?.() && key) {
       } catch (error) { inform(error); }
     },
     async restore() {
-      try { const token = await ready(); await Purchases.restorePurchases(); await verify(token); window.alert('Purchases restored.'); }
-      catch (error) { inform(error); }
+      const token = await ready();
+      await Purchases.restorePurchases();
+      await verify(token);
     }
   };
   window.addEventListener('load', () => setTimeout(() => window.NowNativeBilling.sync(), 1000));
