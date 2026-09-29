@@ -95,13 +95,13 @@ function locateUser() {
     status.textContent = message+' '+uiText('You can still browse available listings.','Вы всё равно можете просматривать доступные предложения.');
     renderOpportunities();
   };
-  if (!navigator.geolocation || !window.isSecureContext) {
+  if (!window.NOW_GET_POSITION && (!navigator.geolocation || !window.isSecureContext)) {
     fallback(uiText('Location is unavailable in this browser.','Геолокация недоступна в этом браузере.'));
     return;
   }
   button.disabled = true;
   status.textContent = uiText('Finding your location…','Определяем ваше местоположение…');
-  navigator.geolocation.getCurrentPosition(position => {
+  const success = position => {
     button.disabled = false;
     const {latitude, longitude, accuracy} = position.coords;
     userPosition = [latitude, longitude];
@@ -114,6 +114,8 @@ function locateUser() {
       exploreMap.stop().setView(userPosition, 14, {animate:false, reset:true});
     }
     loadExploreOpportunities();
-  }, error => fallback(error.code === 1 ? uiText('Location permission denied.','Доступ к геолокации запрещён.') : error.code === 3 ? uiText('Location request timed out.','Время определения местоположения истекло.') : uiText('Could not determine your location.','Не удалось определить местоположение.')),
-  {enableHighAccuracy:true, timeout:10000, maximumAge:60000});
+  };
+  const failure = error => fallback(error.code === 1 ? uiText('Location permission denied.','Доступ к геолокации запрещён.') : error.code === 3 ? uiText('Location request timed out.','Время определения местоположения истекло.') : uiText('Could not determine your location.','Не удалось определить местоположение.'));
+  if (window.NOW_GET_POSITION) window.NOW_GET_POSITION().then(success, failure);
+  else navigator.geolocation.getCurrentPosition(success, failure, {enableHighAccuracy:true, timeout:10000, maximumAge:60000});
 }

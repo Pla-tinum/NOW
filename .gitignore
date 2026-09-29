@@ -1,1 +1,14 @@
 node_modules/
+dist/
+.env
+.env.*
+playwright-report/
+test-results/
+android/.gradle/
+android/local.properties
+android/**/build/
+ios/Pods/
+ios/DerivedData/
+*.keystore
+*.jks
+*.p12
