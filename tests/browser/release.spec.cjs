@@ -29,7 +29,7 @@ test('public legal and deletion pages identify the publisher and support contact
 test('own listing Boost, statistics, paid badge and safe ad placements',async({page})=>{
   let plan='free';
   const listing={id:321,user_id:42,title:'QA own listing',status:'active',category:'Help',location:'Bergen',view_count:7,contact_count:3,favorites_count:2};
-  await page.route('**/api/me',route=>route.fulfill({json:{user:{id:42,email:'qa@example.invalid',display_name:'QA',plan,company_name:'QA AS'},listings:[listing],benefits:{plan,limit:plan==='free'?5:plan==='now_plus'?20:100,analytics:plan==='free'?'basic':plan==='now_plus'?'enhanced':'full',boosts_remaining:plan==='free'?0:plan==='now_plus'?1:3,referral_boosts:0}}}));
+  await page.route('**/api/me',route=>route.fulfill({json:{user:{id:42,email:'qa@example.invalid',display_name:'QA',plan,company_name:'QA AS'},listings:[listing],benefits:{plan,ads:plan==='free',limit:plan==='free'?5:plan==='now_plus'?20:100,analytics:plan==='free'?'basic':plan==='now_plus'?'enhanced':'full',boosts_remaining:plan==='free'?0:plan==='now_plus'?1:3,referral_boosts:0}}}));
   await page.route('**/api/me/referrals',route=>route.fulfill({json:{code:'NOWQA',count:0}}));
   await page.route('**/api/me/jobs',route=>route.fulfill({json:{jobs:[]}}));
   await page.route('**/api/me/favorites',route=>route.fulfill({json:{listings:[]}}));
