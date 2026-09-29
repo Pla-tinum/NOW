@@ -22,7 +22,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK components
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - run: npm run sync:mobile
       - run: ./gradlew :app:assembleDebug --no-daemon
         working-directory: android
