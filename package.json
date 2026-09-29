@@ -8,13 +8,29 @@
     "test": "node --test tests/release.cjs",
     "test:e2e": "node --test tests/e2e.cjs",
     "test:moderation": "node --test tests/moderation.cjs",
-    "test:admin": "node --test tests/admin.cjs"
+    "test:admin": "node --test tests/admin.cjs",
+    "test:browser": "playwright test",
+    "test:billing": "node --test tests/billing.cjs",
+    "build:mobile": "node scripts/build-mobile.cjs",
+    "sync:mobile": "node scripts/configure-native.cjs && npm run build:mobile && cap sync",
+    "check:store": "node scripts/check-store.cjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^8.1.0",
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/geolocation": "^8.2.2",
+    "@capacitor/ios": "^8.5.2",
+    "@revenuecat/purchases-capacitor": "^13.6.1",
     "leaflet": "^1.9.4",
     "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@playwright/test": "^1.63.0",
+    "esbuild": "^0.25.12"
   }
 }

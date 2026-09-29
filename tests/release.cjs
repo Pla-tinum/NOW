@@ -39,8 +39,9 @@ test('legal pages respond and private files stay private', async () => {
   }
   const privacy = await (await get('/privacy')).text();
   assert.match(privacy, /aloe\.vera225@yahoo\.com/);
+  assert.match(privacy, /Valentyn Shemeiko/);
   assert.doesNotMatch(privacy, /will be finalized before public store submission|pre-release version/);
-  for (const path of ['/server.js', '/package.json', '/.env']) {
+  for (const path of ['/server.js', '/billing.js', '/package.json', '/.env']) {
     assert.equal((await get(path)).status, 404, path);
   }
 });

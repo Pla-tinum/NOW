@@ -1,0 +1,8 @@
+{
+  "appId": "com.valentynshemeiko.now",
+  "appName": "NOW",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

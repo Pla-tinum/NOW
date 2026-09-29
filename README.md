@@ -24,13 +24,13 @@ Public listings, profiles, community posts and reviews are checked using OpenAI 
 
 ## Required external release setup
 
-Google Play and Apple products must use the IDs above. Native shells should expose `window.NowNativeBilling.purchase(product)` and `window.NowNativeBilling.restore()` to the web layer, then verify store transactions server-side before granting entitlements. Do not enable `STORE_BILLING_ENABLED` until verification is implemented and tested.
+Google Play and Apple products must use the IDs above. Android and iOS Capacitor projects are in `android/` and `ios/`, with app ID `com.valentynshemeiko.now` and version 1.0.0. The web files are packaged locally; native API requests go to the Railway production origin. `npm run sync:mobile` rebuilds these assets and synchronizes native plugins.
 
-The repository currently contains a web application, not signed Android/iOS projects or a store billing backend. Store releases with Plus, Business and Boost require native projects, store credentials, server-side purchase verification, lifecycle handling for renewals/cancellations/refunds and sandbox tests. The price on the plan screen is an indicative NOK price; the store's localized price is authoritative. Do not submit the current web application as a complete paid mobile app.
+The native purchase bridge uses RevenueCat StoreKit / Play Billing SDKs and the server verifies subscription products and unused Boost transactions with the RevenueCat REST API before granting access. Set `REVENUECAT_ANDROID_PUBLIC_KEY` and `REVENUECAT_IOS_PUBLIC_KEY` when packaging, and `REVENUECAT_SECRET_API_KEY` only in Railway. Enable `STORE_BILLING_ENABLED=true` only after the products, store connection and sandbox tests are complete. No secret key belongs in the client. The price on the plan screen is indicative; the store's localized price is authoritative. Purchases, renewal, refund and restore still require live sandbox verification before submission.
 
-Set `NOW_LEGAL_NAME` to the publisher's verified full legal name before submission and review the text in `legal.js` against the actual data flows and retention settings. Public contact is `aloe.vera225@yahoo.com`. Store metadata can link to `/privacy`, `/support` and `/delete-account` without a separate domain.
+The legal pages name Valentyn Shemeiko and publish `aloe.vera225@yahoo.com` as support. Review the final store SDK data flows and retention language before submission. Store metadata and product copy are drafted in `store/metadata.md`; the public `/privacy`, `/support` and `/delete-account` pages work without a separate domain.
 
-For ads, keep `ADS_TEST_MODE=true` during development. Production requires the AdMob app/unit IDs in Railway and store-compliant consent/privacy handling before `ADS_ENABLED=true`.
+AdMob banner integration and UMP consent are in the native build. Demo app/unit IDs are used until the AdMob account exists; production builds need `ADMOB_ANDROID_APP_ID`, `ADMOB_IOS_APP_ID`, `ADMOB_ANDROID_BANNER_UNIT_ID` and `ADMOB_IOS_BANNER_UNIT_ID` when running `npm run sync:mobile`. Keep `ADS_TEST_MODE=true` during device testing; enable `ADS_ENABLED=true` on Railway only after the AdMob privacy message, real IDs, disclosures and test ads are verified. Plus and Business suppress ads.
 
 ## Local run
 
@@ -39,9 +39,12 @@ For ads, keep `ADS_TEST_MODE=true` during development. Production requires the A
 `npm test` (public smoke checks with `TEST_URL` pointing to a running service)
 `npm run test:e2e` (creates and then deletes two disposable accounts; use only on an authorized test or production environment)
 `npm run test:moderation` (checks public content and report protection)
+`npm run test:billing` (checks server-side purchase rules without store credentials)
+`npm run test:browser` (Playwright: desktop Chromium/WebKit and emulated Android/iPhone; run `npx playwright install chromium webkit` first)
 `MOD_TOKEN=... npm run test:admin` (checks report review and irreversible moderator hide; fetch the token privately from Railway)
+`npm run check:store` (requires real public SDK and AdMob IDs; does not replace signing or device tests)
 
-Node.js 18+ is required. Explore uses locally served Leaflet 1.9 and OpenStreetMap tiles. Location is requested only through user action/settings and can be disabled.
+Node.js 22+ is required for Capacitor 8. Explore uses locally served Leaflet 1.9 and OpenStreetMap tiles. Location is requested only through user action/settings and can be disabled.
 
 ## Pre-submission checklist
 
