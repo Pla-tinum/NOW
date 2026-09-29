@@ -53,7 +53,7 @@ async function moderatePublic(value){const text=String(value||'').trim();if(!tex
 function moderatorAuthorized(req){const secret=process.env.NOW_MODERATOR_TOKEN||'',given=String(req.headers.authorization||'').replace(/^Bearer\s+/i,'');if(!secret||!given)return false;const a=Buffer.from(secret),b=Buffer.from(given);return a.length===b.length&&crypto.timingSafeEqual(a,b)}
 const server = http.createServer(async (req, res) => {
   const nativeOrigin = req.headers.origin;
-  if(nativeOrigin === 'capacitor://localhost' || nativeOrigin === 'http://localhost') {
+  if(nativeOrigin === 'capacitor://localhost' || nativeOrigin === 'https://localhost' || nativeOrigin === 'http://localhost') {
     res.setHeader('Access-Control-Allow-Origin', nativeOrigin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
