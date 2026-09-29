@@ -31,6 +31,22 @@ test('public data and release configuration have expected shapes', async () => {
   }
 });
 
+test('NOW 1.0 product IDs, prices and allowances stay fixed',async()=>{
+  const plans=await (await get('/api/plans?country=NO')).json();
+  assert.equal(plans.plans.free.active_listing_limit,5);
+  assert.deepEqual([plans.plans.plus.price,plans.plans.plus.active_listing_limit,plans.plans.plus.included_boosts_per_paid_month],[59,20,1]);
+  assert.deepEqual([plans.plans.business.price,plans.plans.business.active_listing_limit,plans.plans.business.included_boosts_per_paid_month],[130,100,3]);
+  assert.deepEqual([plans.plans.boost.price,plans.plans.boost.duration_hours,plans.plans.boost.consumable],[19,72,true]);
+  assert.equal(plans.plans.plus.entitlement,'now_plus');
+  assert.equal(plans.plans.business.entitlement,'now_business');
+  const config=await (await get('/app-config')).json();
+  assert.deepEqual(config.products,{plus:'now_plus_monthly',business:'now_business_monthly',boost:'listing_boost'});
+  const ads=await (await get('/api/ads/config')).json();
+  assert.deepEqual(ads.hideForPlans,['now_plus','now_business']);
+  assert.ok(ads.rules.excludedScreens.includes('chat'));
+  assert.ok(ads.rules.excludedScreens.includes('create'));
+});
+
 test('legal pages respond and private files stay private', async () => {
   for (const path of ['/privacy', '/terms', '/support', '/delete-account']) {
     const response = await get(path);

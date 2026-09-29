@@ -29,10 +29,29 @@ test('two accounts: publish, apply, chat, deal, review, report, block, delete', 
     assert.equal((await call('/api/me','GET',owner)).status,200,'repeat sign-in must restore the account');
     const created=await call('/api/listings','POST',owner,{title:'NOW QA '+suffix,description:'Disposable release QA listing',category:'Help',country:'NO',location:'Bergen',kind:'need'});
     assert.equal(created.status,201,JSON.stringify(created.data)); const id=created.data.listing.id; console.log('QA: listed');
+    const benefits=(await call('/api/me','GET',owner)).data.benefits;
+    assert.equal(benefits.plan,'free'); assert.equal(benefits.limit,5); assert.equal(benefits.ads,true);
+    assert.equal((await call('/api/me/business/analytics','GET',owner)).status,403);
+    assert.equal((await call('/api/me/business','POST',owner,{company_name:'QA Ltd'})).status,403);
+    assert.equal((await call('/api/me/business/listings/bulk','POST',owner,{action:'pause'})).status,403);
+    const firstView=await call('/api/listings/'+id+'/view','POST',worker);
+    assert.equal(firstView.status,204);assert.equal((await call('/api/listings/'+id+'/view','POST',worker)).status,204);
+    assert.equal((await call('/api/me','GET',owner)).data.listings.find(x=>x.id===id).view_count,1);
+    assert.equal((await call('/api/listings/'+id+'/boost','POST',owner)).status,409);
+    if(!(await call('/app-config')).data.storeBilling)assert.equal((await call('/api/me/store/sync','POST',owner,{})).status,503,'unconfigured billing must be disabled');
+    for(let n=1;n<5;n++){const extra=await call('/api/listings','POST',owner,{title:'NOW QA extra '+n+' '+suffix,description:'Disposable quota QA',category:'Help',country:'NO'});assert.equal(extra.status,201,JSON.stringify(extra.data))}
+    const over=await call('/api/listings','POST',owner,{title:'NOW QA limit '+suffix,description:'Must be rejected at five active listings',category:'Help',country:'NO'});
+    assert.equal(over.status,409);assert.equal(over.data.error,'ACTIVE_LISTING_LIMIT');
+    const extraId=(await call('/api/me','GET',owner)).data.listings.find(x=>x.title.includes('extra 1')).id;
+    assert.equal((await call('/api/me/listings/'+extraId,'POST',owner,{status:'paused'})).status,200);
+    assert.equal((await call('/api/me/listings/'+extraId,'POST',owner,{status:'active'})).status,200);
+    console.log('QA: free cap and restore on reactivation');
     assert.equal((await call('/api/me/listings/'+id,'POST',owner,{status:'deleted'})).status,404);
     const listings=await call('/api/listings'); assert.ok(listings.data.listings.some(x=>x.id===id));
     const applied=await call('/api/jobs/apply','POST',worker,{listing_id:id,message:'QA application'});
     assert.equal(applied.status,200,JSON.stringify(applied.data)); const job=applied.data.job.id; console.log('QA: applied');
+    assert.equal((await call('/api/direct/conversations','GET',worker)).data.new_chat_limit,null);
+    assert.equal((await call('/api/me','GET',owner)).data.listings.find(x=>x.id===id).contact_count,undefined,'Free only sees views');
     assert.equal((await call(`/api/jobs/${job}/messages`,'POST',owner,{text:'QA hello'})).status,201);
     assert.ok((await call(`/api/jobs/${job}/messages`,'GET',worker)).data.messages.some(x=>x.text==='QA hello')); console.log('QA: chat');
     for(const [action,token] of [['accept',owner],['start',worker],['complete',worker],['confirm',owner]]) {

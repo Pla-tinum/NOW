@@ -8,7 +8,8 @@ if (window.Capacitor?.isNativePlatform?.()) {
   async function refresh() {
     const config = window.NOW_ADS;
     const unit = window.NOW_AD_UNITS?.[platform];
-    const allowed = config?.enabled && unit && window.nowAdsAllowed?.();
+    const demoUnit = !!unit?.includes('3940256099942544');
+    const allowed = config?.enabled && unit && (!demoUnit || config.testMode) && window.nowAdsAllowed?.();
     if (!allowed) {
       if (shown) { await AdMob.removeBanner(); shown = false; document.documentElement.classList.remove('native-ad-visible'); }
       return;
@@ -32,5 +33,10 @@ if (window.Capacitor?.isNativePlatform?.()) {
     await AdMob.showBanner({ adId: unit, adSize: BannerAdSize.BANNER, position: BannerAdPosition.BOTTOM_CENTER, isTesting: !!config.testMode });
     shown = true; document.documentElement.classList.add('native-ad-visible');
   }
-  window.addEventListener('load', () => { setInterval(() => refresh().catch(() => {}), 8000); refresh().catch(() => {}); });
+  window.addEventListener('load', () => {
+    setInterval(() => refresh().catch(() => {}), 8000);
+    const observer = new MutationObserver(() => refresh().catch(() => {}));
+    document.querySelectorAll('.page').forEach(page => observer.observe(page, {attributes:true,attributeFilter:['class']}));
+    refresh().catch(() => {});
+  });
 }
