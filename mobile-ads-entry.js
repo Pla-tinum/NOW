@@ -33,5 +33,10 @@ if (window.Capacitor?.isNativePlatform?.()) {
     await AdMob.showBanner({ adId: unit, adSize: BannerAdSize.BANNER, position: BannerAdPosition.BOTTOM_CENTER, isTesting: !!config.testMode });
     shown = true; document.documentElement.classList.add('native-ad-visible');
   }
-  window.addEventListener('load', () => { setInterval(() => refresh().catch(() => {}), 8000); refresh().catch(() => {}); });
+  window.addEventListener('load', () => {
+    setInterval(() => refresh().catch(() => {}), 8000);
+    const observer = new MutationObserver(() => refresh().catch(() => {}));
+    document.querySelectorAll('.page').forEach(page => observer.observe(page, {attributes:true,attributeFilter:['class']}));
+    refresh().catch(() => {});
+  });
 }
